@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş - User Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .login-header p {
+            color: #666;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .quick-login {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .quick-login h4 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        .quick-btn {
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .quick-btn:hover {
+            background: #218838;
+        }
+        .quick-btn.admin {
+            background: #dc3545;
+        }
+        .quick-btn.admin:hover {
+            background: #c82333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Giriş Yap</h1>
+            <p>Hesabınıza giriş yapın</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Şifre</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn">Giriş Yap</button>
+        </form>
+
+        <div class="quick-login">
+            <h4>🚀 Hızlı Giriş</h4>
+            <button class="quick-btn admin" onclick="quickLogin('admin')">👑 Admin Girişi</button>
+            <button class="quick-btn" onclick="quickLogin('john_doe')">👨 Erkek Kullanıcı (John)</button>
+            <button class="quick-btn" onclick="quickLogin('jane_smith')">👩 Kadın Kullanıcı (Jane)</button>
+        </div>
+
+        <div class="footer">
+            <p>Hesabınız yok mu? <a onclick="goToRegister()">Kayıt olun</a></p>
+            <p><a onclick="goToHome()">Ana Sayfaya Dön</a></p>
+        </div>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Database Service -->
+    <script src="assets/js/database-fixed.js"></script>
+
+    <script>
+        // Wait for database service to initialize
+        let dbReady = false;
+        let currentUser = null;
+
+        // Check database status
+        async function checkDatabaseStatus() {
+            try {
+                if (window.db) {
+                    dbReady = true;
+                    const status = window.db.getStatusMessage();
+                    console.log('🗄️ Database Status:', status.title, '-', status.message);
+                    
+                    // Show database status
+                    showAlert(`${status.icon} ${status.title}: ${status.message}`, 
+                             status.type === 'success' ? 'success' : 'info');
+                }
+            } catch (error) {
+                console.error('Database status check failed:', error);
+            }
+        }
+
+        // Initialize when database is ready
+        async function initializeApp() {
+            // Wait for database service
+            let attempts = 0;
+            while (!window.db && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (window.db) {
+                dbReady = true;
+                await checkDatabaseStatus();
+                
+                // Check if already logged in
+                await checkExistingLogin();
+            } else {
+                console.error('Database service not available');
+                initializeFallback();
+            }
+        }
+
+        // Fallback to local users if database fails
+        // Fallback to local users if database fails
+        function initializeFallback() {
+            console.log('🔄 Using fallback local users');
+            dbReady = true;
+        }
+
+        // Check if user is already logged in
+        async function checkExistingLogin() {
+            const userData = localStorage.getItem('currentUser');
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    
+                    // Verify user still exists in database
+                    if (dbReady && window.db) {
+                        const users = await window.db.getAllUsers();
+                        const userExists = users.find(u => u.username === currentUser.username);
+                        
+                        if (userExists) {
+                            redirectToDashboard(currentUser);
+                            return;
+                        } else {
+                            // User doesn't exist anymore, clear localStorage
+                            localStorage.removeItem('currentUser');
+                            currentUser = null;
+                        }
+                    } else {
+                        // Database not ready, assume user is valid
+                        redirectToDashboard(currentUser);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking existing login:', error);
+                    localStorage.removeItem('currentUser');
+                }
+            }
+        }
+
+        // Redirect to appropriate dashboard
+        function redirectToDashboard(user) {
+            if (user.role === 'admin') {
+                window.location.href = 'admin/simple-dashboard.html';
+            } else {
+                window.location.href = 'simple-dashboard.html';
+            }
+        }
+
+        // Updated login function with database integration
+        async function performLogin(username, password) {
+            try {
+                let user = null;
+                
+                // Try database first if available
+                if (dbReady && window.db) {
+                    console.log('🔗 Veritabanından giriş kontrol ediliyor...');
+                    const users = await window.db.getAllUsers();
+                    user = users.find(u => u.username === username && u.password === password);
+                    
+                    if (user) {
+                        // Log the activity
+                        await window.db.logActivity(user.id, 'login', 'Sisteme giriş yapıldı');
+                        
+                        // Update last login
+                        await window.db.updateUser(user.id, {
+                            last_login: new Date().toISOString()
+                        });
+                    }
+                } else {
+                    // Fallback to hardcoded users
+                    console.log('🔄 Yerel kullanıcılardan kontrol ediliyor...');
+                    user = fallbackUsers[username];
+                    if (user && user.password === password) {
+                        // User found in fallback
+                    } else {
+                        user = null;
+                    }
+                }
+                
+                if (user) {
+                    showAlert('✅ Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+                    
+                    // Save user to localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    currentUser = user;
+                    
+                    // Redirect after delay
+                    setTimeout(() => {
+                        redirectToDashboard(user);
+                    }, 1500);
+                    
+                    return true;
+                } else {
+                    showAlert('❌ Kullanıcı adı veya şifre hatalı!', 'error');
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('❌ Giriş sırasında bir hata oluştu!', 'error');
+                return false;
+            }
+        }
+
+        // Fallback users (same as before)
+        const fallbackUsers = {
+            admin: {
+                id: 1,
+                username: 'admin',
+                password: 'admin123',
+                role: 'admin',
+                first_name: 'Admin',
+                last_name: 'User',
+                email: 'admin@example.com'
+            },
+            john_doe: {
+                id: 2,
+                username: 'john_doe',
+                password: 'user123',
+                role: 'user',
+                first_name: 'John',
+                last_name: 'Doe',
+                email: 'john@example.com',
+                gender: 'male'
+            },
+            jane_smith: {
+                id: 3,
+                username: 'jane_smith',
+                password: 'user123',
+                role: 'user',
+                first_name: 'Jane',
+                last_name: 'Smith',
+                email: 'jane@example.com',
+                gender: 'female'
+            }
+        };
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showAlert('Kullanıcı adı ve şifre gereklidir.', 'error');
+                return;
+            }
+            
+            // Perform login
+            await performLogin(username, password);
+        });
+
+        // Quick login with database integration
+        async function quickLogin(username) {
+            try {
+                let user = null;
+                
+                // Try database first if available
+                if (dbReady && window.db) {
+                    const users = await window.db.getAllUsers();
+                    user = users.find(u => u.username === username);
+                } else {
+                    // Fallback to hardcoded users
+                    user = fallbackUsers[username];
+                }
+                
+                if (user) {
+                    showAlert(`✅ ${user.first_name} olarak giriş yapılıyor...`, 'success');
+                    
+                    // Log activity if database is available
+                    if (dbReady && window.db) {
+                        await window.db.logActivity(user.id, 'quick_login', 'Hızlı giriş yapıldı');
+                        await window.db.updateUser(user.id, {
+                            last_login: new Date().toISOString()
+                        });
+                    }
+                    
+                    // Save user to localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    currentUser = user;
+                    
+                    // Redirect
+                    setTimeout(() => {
+                        redirectToDashboard(user);
+                    }, 1500);
+                } else {
+                    showAlert('❌ Kullanıcı bulunamadı!', 'error');
+                }
+            } catch (error) {
+                console.error('Quick login error:', error);
+                showAlert('❌ Hızlı giriş sırasında hata oluştu!', 'error');
+            }
+        }
+
+        // Fill credentials for testing
+        function fillCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        function goToRegister() {
+            window.location.href = 'simple-register.html';
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Auto-fill for testing
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initialize app when page loads
+            initializeApp();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Paneli - User Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .welcome {
+            color: #333;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .user-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        .user-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .user-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .gender-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .male {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .female {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <div class="welcome">
+                <h2>👋 Hoş geldin, <span id="userName">Kullanıcı</span>!</h2>
+                <p>Profil bilgilerini düzenleyebilir ve diğer kullanıcıları görebilirsin.</p>
+            </div>
+            <button class="logout-btn" onclick="logout()">🚪 Çıkış Yap</button>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="main-content">
+            <div class="card">
+                <h3>📝 Profil Bilgileri</h3>
+                               <form id="profileForm">
+                    <div class="form-group">
+                        <label for="firstName">Ad</label>
+                        <input type="text" 
+                               id="firstName" 
+                               name="firstName"
+                               placeholder="Adınızı giriniz" 
+                               title="Adınızı buraya yazın"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Soyad</label>
+                        <input type="text" 
+                               id="lastName" 
+                               name="lastName"
+                               placeholder="Soyadınızı giriniz" 
+                               title="Soyadınızı buraya yazın"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" 
+                               id="email" 
+                               name="email"
+                               placeholder="E-mail adresinizi giriniz" 
+                               title="Geçerli bir e-mail adresi girin"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Cinsiyet</label>
+                        <select id="gender" 
+                                name="gender"
+                                title="Cinsiyetinizi seçin" 
+                                required>
+                            <option value="">Cinsiyet seçiniz</option>
+                            <option value="male">Erkek</option>
+                            <option value="female">Kadın</option>
+                        </select>
+                    </div>
+                    <button type="submit" 
+                            class="btn" 
+                            title="Profil bilgilerinizi kaydet">
+                        💾 Güncelle
+                    </button>
+                </form>
+
+            <div class="card">
+                <h3>👥 Diğer Kullanıcılar</h3>
+                <p>Cinsiyetinize göre uyumlu kullanıcılar:</p>
+                <button class="btn btn-success" onclick="showOtherUsers()">🔍 Diğer Kullanıcıları Gör</button>
+                <div id="otherUsersContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Database Service -->
+    <script src="assets/js/database-fixed.js"></script>
+
+    <script>
+        let currentUser = null;
+        let allUsers = [];
+        let dbReady = false;
+
+        // Initialize app
+        async function initializeApp() {
+            // Wait for database service
+            let attempts = 0;
+            while (!window.db && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (window.db) {
+                dbReady = true;
+                const status = window.db.getStatusMessage();
+                console.log('🗄️ Database Status:', status.title, '-', status.message);
+                
+                // Show database status
+                showAlert(`${status.icon} ${status.title}: ${status.message}`, 
+                         status.type === 'success' ? 'success' : 'info', 3000);
+            }
+            
+            // Check authentication
+            await checkAuthentication();
+            
+            // Load users
+            await loadUsers();
+        }
+
+        // Check if user is authenticated
+        async function checkAuthentication() {
+            const userData = localStorage.getItem('currentUser');
+            if (!userData) {
+                window.location.href = 'simple-login.html';
+                return;
+            }
+
+            try {
+                currentUser = JSON.parse(userData);
+                
+                // Verify user still exists if database is available
+                if (dbReady && window.db) {
+                    const users = await window.db.getAllUsers();
+                    const userExists = users.find(u => u.username === currentUser.username);
+                    
+                    if (!userExists) {
+                        localStorage.removeItem('currentUser');
+                        window.location.href = 'simple-login.html';
+                        return;
+                    }
+                }
+                
+                // Display user info
+                document.getElementById('userName').textContent = currentUser.first_name || currentUser.username;
+                
+                // Fill form
+                document.getElementById('firstName').value = currentUser.first_name || '';
+                document.getElementById('lastName').value = currentUser.last_name || '';
+                document.getElementById('email').value = currentUser.email || '';
+                document.getElementById('gender').value = currentUser.gender || '';
+                
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                localStorage.removeItem('currentUser');
+                window.location.href = 'simple-login.html';
+            }
+        }
+
+        // Load users from database
+        async function loadUsers() {
+            try {
+                if (dbReady && window.db) {
+                    allUsers = await window.db.getAllUsers();
+                    console.log('📊 Loaded users from database:', allUsers.length);
+                } else {
+                    // Fallback users
+                    allUsers = Object.values(fallbackUsers);
+                    console.log('📊 Using fallback users:', allUsers.length);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                allUsers = Object.values(fallbackUsers);
+            }
+        }
+
+        // Fallback users
+        // Fallback users
+        const fallbackUsers = {
+            admin: {
+                id: 1,
+                username: 'admin',
+                first_name: 'Admin',
+                last_name: 'User',
+                email: 'admin@example.com',
+                gender: 'male',
+                role: 'admin'
+            },
+            john_doe: {
+                id: 2,
+                username: 'john_doe',
+                first_name: 'John',
+                last_name: 'Doe',
+                email: 'john@example.com',
+                gender: 'male',
+                role: 'user'
+            },
+            jane_smith: {
+                id: 3,
+                username: 'jane_smith',
+                first_name: 'Jane',
+                last_name: 'Smith',
+                email: 'jane@example.com',
+                gender: 'female',
+                role: 'user'
+            },
+            mary_johnson: {
+                id: 4,
+                username: 'mary_johnson',
+                first_name: 'Mary',
+                last_name: 'Johnson',
+                email: 'mary@example.com',
+                gender: 'female',
+                role: 'user'
+            },
+            mike_wilson: {
+                id: 5,
+                username: 'mike_wilson',
+                first_name: 'Mike',
+                last_name: 'Wilson',
+                email: 'mike@example.com',
+                gender: 'male',
+                role: 'user'
+            }
+        };
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        // Profile update with database integration
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                // Update current user data
+                const updatedData = {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    gender: document.getElementById('gender').value
+                };
+                
+                // Update in database if available
+                if (dbReady && window.db && currentUser.id) {
+                    const result = await window.db.updateUser(currentUser.id, updatedData);
+                    
+                    if (result.success) {
+                        currentUser = { ...currentUser, ...updatedData };
+                        
+                        // Log activity
+                        await window.db.logActivity(currentUser.id, 'profile_update', 'Profil bilgileri güncellendi');
+                    } else {
+                        console.error('Database update failed:', result.error);
+                    }
+                } else {
+                    // Update locally
+                    currentUser = { ...currentUser, ...updatedData };
+                }
+                
+                // Update localStorage
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update display
+                document.getElementById('userName').textContent = currentUser.first_name;
+                
+                showAlert('✅ Profil bilgilerin güncellendi!', 'success');
+                
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showAlert('❌ Profil güncellenirken hata oluştu!', 'error');
+            }
+        });
+
+        // Show other users based on gender with database integration
+        async function showOtherUsers() {
+            if (!currentUser.gender) {
+                showAlert('❌ Önce cinsiyet bilgini güncellemen gerekiyor!', 'error');
+                return;
+            }
+
+            try {
+                // Reload users to get latest data
+                await loadUsers();
+                
+                const targetGender = currentUser.gender === 'male' ? 'female' : 'male';
+                const compatibleUsers = allUsers.filter(user => 
+                    user.gender === targetGender && user.username !== currentUser.username
+                );
+
+                const container = document.getElementById('otherUsersContainer');
+                
+                if (compatibleUsers.length === 0) {
+                    container.innerHTML = '<p>Henüz uyumlu kullanıcı bulunamadı.</p>';
+                    return;
+                }
+
+                const usersHTML = compatibleUsers.map(user => `
+                    <div class="user-card">
+                        <h4>${user.first_name} ${user.last_name}</h4>
+                        <p>📧 ${user.email}</p>
+                        <p>👤 @${user.username}</p>
+                        <span class="gender-badge ${user.gender}">
+                            ${user.gender === 'male' ? '👨 Erkek' : '👩 Kadın'}
+                        </span>
+                    </div>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="users-grid">
+                        ${usersHTML}
+                    </div>
+                `;
+                
+                // Log activity
+                if (dbReady && window.db && currentUser.id) {
+                    await window.db.logActivity(currentUser.id, 'view_users', 'Diğer kullanıcılar görüntülendi');
+                }
+                
+            } catch (error) {
+                console.error('Error showing other users:', error);
+                showAlert('❌ Kullanıcılar yüklenirken hata oluştu!', 'error');
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (dbReady && window.db && currentUser && currentUser.id) {
+                // Log logout activity (fire and forget)
+                window.db.logActivity(currentUser.id, 'logout', 'Sistemden çıkış yapıldı').catch(console.error);
+            }
+            
+            localStorage.removeItem('currentUser');
+            window.location.href = 'simple-login.html';
+        }
+
+        // Show alert with auto-hide
+        function showAlert(message, type, duration = 5000) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, duration);
+        }
+    </script>
+</body>
+</html>

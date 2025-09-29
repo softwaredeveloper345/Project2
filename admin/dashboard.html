@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - User Management System</title>
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <style>
+        /* Admin specific styles */
+        .stat-card {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .username {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .users-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .users-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .users-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .user-avatar-sm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-placeholder-sm {
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .role-admin {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .role-user {
+            background: #007bff;
+            color: white;
+        }
+        
+        .status-active {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-inactive {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .status-suspended {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-dropdown {
+            padding: 2px 6px;
+            font-size: 11px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        
+        .status-dropdown:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .photo-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .photo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .photo-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .photo-card .username {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .photo-images {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .photo-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .photo-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        
+        .photo-thumbnail.profile {
+            border: 2px solid #007bff;
+        }
+        
+        .photo-thumbnail.secondary {
+            border: 2px solid #28a745;
+        }
+        
+        /* Photo Modal */
+        .photo-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+        
+        .photo-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .photo-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .photo-modal-caption {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            margin-top: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .photo-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .demo-alert {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .filter-section .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .filter-section .filter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .filter-section .filter-btn.active {
+            background: var(--border-color) !important;
+            color: white !important;
+        }
+        
+        .filter-section .filter-btn[data-filter="male"].active {
+            background: #2196f3 !important;
+            border-color: #2196f3;
+        }
+        
+        .filter-section .filter-btn[data-filter="female"].active {
+            background: #e91e63 !important;
+            border-color: #e91e63;
+        }
+        
+        .filter-section .filter-btn[data-filter="unknown"].active {
+            background: #6c757d !important;
+            border-color: #6c757d;
+        }
+        
+        .user-row {
+            transition: all 0.3s ease;
+        }
+        
+        .user-row.hidden {
+            display: none;
+        }
+        
+        .user-row.male {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .user-row.female {
+            border-left: 4px solid #e91e63;
+        }
+        
+        .user-row.unknown {
+            border-left: 4px solid #6c757d;
+        }
+        
+        .gender-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .gender-badge.male {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+        
+        .gender-badge.female {
+            background: rgba(233, 30, 99, 0.1);
+            color: #e91e63;
+        }
+        
+        .gender-badge.unknown {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+        
+        .pdf-upload-input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li><a href="#overview" class="menu-link active" data-tab="overview">
+                    <i class="icon">📊</i> Genel Bakış
+                </a></li>
+                <li><a href="#users" class="menu-link" data-tab="users">
+                    <i class="icon">👥</i> Kullanıcılar
+                </a></li>
+                <li><a href="#photos" class="menu-link" data-tab="photos">
+                    <i class="icon">📸</i> Fotoğraf Galerisi
+                </a></li>
+                <li><a href="#activities" class="menu-link" data-tab="activities">
+                    <i class="icon">📋</i> Aktiviteler
+                </a></li>
+                <li><a href="#settings" class="menu-link" data-tab="settings">
+                    <i class="icon">⚙️</i> Ayarlar
+                </a></li>
+                <li><a href="../dashboard.html" class="menu-link">
+                    <i class="icon">👤</i> Profil
+                </a></li>
+                <li><a href="#" class="menu-link logout" onclick="logoutUser()">
+                    <i class="icon">🚪</i> Çıkış
+                </a></li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h1>Admin Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <div class="avatar-placeholder">A</div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">Admin User</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Database Status -->
+            <div id="db-status"></div>
+            
+            <!-- Demo Alert - Hidden -->
+            <div class="demo-alert" style="display: none;">
+                <strong>💾 Sistem Durumu:</strong> Kullanıcı yönetim sistemi aktif.
+            </div>
+            
+            <!-- Alerts -->
+            <div id="alertContainer"></div>
+            
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="content-section">
+                    <h2>📊 Sistem İstatistikleri</h2>
+                    
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalUsersCount">0</div>
+                            <div class="stat-label">Toplam Kullanıcı</div>
+                        </div>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                            <div class="stat-number" id="activeUsersCount">0</div>
+                            <div class="stat-label">Aktif Kullanıcı</div>
+                        </div>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                            <div class="stat-number" id="adminUsersCount">0</div>
+                            <div class="stat-label">Yönetici</div>
+                        </div>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                            <div class="stat-number" id="maleUsersCount">0</div>
+                            <div class="stat-label">👨 Erkek Kullanıcı</div>
+                        </div>
+                        
+                        <div class="stat-card" style="background: linear-gradient(135deg, #e91e63, #ad1457);">
+                            <div class="stat-number" id="femaleUsersCount">0</div>
+                            <div class="stat-label">🧕 Bayan Kullanıcı</div>
+                        </div>
+                    </div>
+                    
+                    <h3>📋 Son Aktiviteler</h3>
+                    <div id="recentActivitiesList" class="activity-list">
+                        <!-- Recent activities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="content-section">
+                    <h2>👥 Kullanıcı Yönetimi</h2>
+                    
+                    <!-- Gender Filter Section -->
+                    <div class="filter-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                            <span style="font-weight: bold;">👥 Kullanıcı Filtresi:</span>
+                            <div class="filter-buttons" style="display: flex; gap: 10px;">
+                                <button class="filter-btn active" data-filter="all" onclick="filterUsers('all')" 
+                                        style="padding: 8px 16px; border: 2px solid #007bff; background: #007bff; color: white; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                                    🔍 Hepsi
+                                </button>
+                                <button class="filter-btn" data-filter="male" onclick="filterUsers('male')"
+                                        style="padding: 8px 16px; border: 2px solid #2196f3; background: transparent; color: #2196f3; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                                    👨 Erkek
+                                </button>
+                                <button class="filter-btn" data-filter="female" onclick="filterUsers('female')"
+                                        style="padding: 8px 16px; border: 2px solid #e91e63; background: transparent; color: #e91e63; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                                    👩 Bayan
+                                </button>
+                                <button class="filter-btn" data-filter="unknown" onclick="filterUsers('unknown')"
+                                        style="padding: 8px 16px; border: 2px solid #6c757d; background: transparent; color: #6c757d; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s;">
+                                    ❓ Belirtilmemiş
+                                </button>
+                            </div>
+                            <div id="filterStats" style="font-size: 14px; color: #666; margin-left: auto;">
+                                <!-- Filter statistics will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>👤 Kullanıcı</th>
+                                    <th>📧 E-mail</th>
+                                    <th>📞 Telefon</th>
+                                    <th>👥 Referans</th>
+                                    <th>⚧️ Cinsiyet</th>
+                                    <th>🎭 Rol</th>
+                                    <th>📊 Durum</th>
+                                    <th>🔧 İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Photo Gallery Tab -->
+            <div id="photos" class="tab-content">
+                <div class="content-section">
+                    <h2>📸 Kullanıcı Fotoğraf Galerisi</h2>
+                    
+                    <p style="color: #666; margin-bottom: 20px;">Tüm kullanıcıların profil ve ikinci fotoğraflarını görüntüleyebilirsiniz.</p>
+                    
+                    <div id="photoGallery" class="photo-gallery-grid">
+                        <!-- Photo gallery will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Activities Tab -->
+            <div id="activities" class="tab-content">
+                <div class="content-section">
+                    <h2>📋 Tüm Aktiviteler</h2>
+                    
+                    <div id="allActivitiesList" class="activity-list">
+                        <!-- All activities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="content-section">
+                    <h2>⚙️ Sistem Ayarları</h2>
+                    
+                    <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <div class="setting-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <h3>🔐 Güvenlik</h3>
+                            <p>Sistem güvenlik ayarları ve politikaları</p>
+                            <ul style="margin-top: 15px;">
+                                <li>Minimum şifre uzunluğu: 6 karakter</li>
+                                <li>Oturum süresi: LocalStorage</li>
+                                <li>Otomatik çıkış: Kapalı (Demo)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="setting-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <h3>👥 Kullanıcı Yönetimi</h3>
+                            <p>Kullanıcı hesap yönetimi ayarları</p>
+                            <ul style="margin-top: 15px;">
+                                <li>Yeni kullanıcı kaydı: Açık</li>
+                                <li>E-posta doğrulama: Kapalı (Demo)</li>
+                                <li>Profil resmi yükleme: Aktif</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="setting-card" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <h3>💾 Veri Yönetimi</h3>
+                            <p>Veri saklama ve yedekleme ayarları</p>
+                            <ul style="margin-top: 15px;">
+                                <li>Veri depolama: LocalStorage</li>
+                                <li>Otomatik yedekleme: Kapalı</li>
+                                <li>Log saklama süresi: 100 kayıt</li>
+                            </ul>
+                        </div>
+                        
+                                <div style="margin-bottom: 15px;">
+                                    <label for="pdfUpload" style="display: block; margin-bottom: 5px; font-weight: bold;">Kullanıcı Sözleşmesi PDF:</label>
+                                    <input type="file" id="pdfUpload" accept=".pdf" class="pdf-upload-input" title="PDF dosyası seçin" placeholder="PDF dosyası seçin">
+                                    <button onclick="uploadPDF()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">📤 PDF Yükle</button>
+                                </div>
+                                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Kullanıcı Sözleşmesi PDF:</label>
+                                    <input type="file" id="pdfUpload" accept=".pdf" style="margin-bottom: 10px;">
+                                    <button onclick="uploadPDF()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">📤 PDF Yükle</button>
+                                </div>
+                                <div id="currentPDF" style="font-size: 14px; color: #666;">
+                                    <strong>Mevcut PDF:</strong> <span id="pdfStatus">Yüklenmemiş</span>
+                                </div>
+                                <div style="margin-top: 10px;">
+                                    <button onclick="testPDFDownload()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">📥 PDF Test Et</button>
+                                    <button onclick="deletePDF()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">🗑️ PDF Sil</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
+        <div class="photo-modal-content">
+            <img id="modalImage" alt="Büyük Fotoğraf">
+            <div id="modalCaption" class="photo-modal-caption"></div>
+        </div>
+        <span class="photo-modal-close" onclick="closePhotoModal()">&times;</span>
+    </div>
+    
+    <script src="../assets/js/database-fixed.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script>
+        // Initialize admin dashboard
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Admin dashboard başlatılıyor...');
+            
+            // Small delay to prevent auth loop
+            setTimeout(() => {
+                // Check authentication
+                const currentUser = getCurrentUser();
+                console.log('Current user in admin dashboard:', currentUser);
+                
+                if (!currentUser) {
+                    console.log('❌ Kullanıcı girişi yapılmamış, login sayfasına yönlendiriliyor');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                
+                if (currentUser.role !== 'admin') {
+                    console.log('❌ Admin yetkisi yok, user dashboard\'a yönlendiriliyor');
+                    window.location.href = '../dashboard.html';
+                    return;
+                }
+                
+                console.log('✅ Admin yetkisi doğrulandı:', currentUser.username);
+                
+                // Initialize admin dashboard
+                if (typeof loadDashboard === 'function') {
+                    loadDashboard();
+                }
+            }, 100);
+        });
+        
+        // Gender Filter Functions
+        let allUsers = [];
+        let currentFilter = 'all';
+        
+        function filterUsers(gender) {
+            currentFilter = gender;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = btn.style.borderColor;
+            });
+            
+            const activeBtn = document.querySelector(`[data-filter="${gender}"]`);
+            activeBtn.classList.add('active');
+            
+            // Filter and display users
+            displayFilteredUsers(gender);
+            updateFilterStats(gender);
+        }
+        
+        function displayFilteredUsers(filter) {
+            const tableBody = document.querySelector('#usersTable tbody');
+            if (!tableBody || !allUsers.length) return;
+            
+            let filteredUsers = allUsers;
+            
+            if (filter !== 'all') {
+                filteredUsers = allUsers.filter(user => {
+                    if (filter === 'male') return user.gender === 'male';
+                    if (filter === 'female') return user.gender === 'female';
+                    if (filter === 'unknown') return !user.gender || user.gender === null;
+                    return true;
+                });
+            }
+            
+            // Clear table
+            tableBody.innerHTML = '';
+            
+            // Add filtered users
+            filteredUsers.forEach(user => {
+                const row = createUserRow(user);
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function createUserRow(user) {
+            const row = document.createElement('tr');
+            row.className = `user-row ${user.gender || 'unknown'}`;
+            
+            const genderDisplay = getGenderDisplay(user.gender);
+            const statusClass = user.status === 'active' ? 'status-active' : 'status-inactive';
+            
+            row.innerHTML = `
+                <td>
+                    <div class="user-info">
+                        <div class="avatar ${user.gender || 'unknown'}">
+                            ${user.profile_image ? 
+                                `<img src="${user.profile_image}" alt="${user.first_name}">` :
+                                `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`
+                            }
+                        </div>
+                        <div>
+                            <div class="name">${user.first_name} ${user.last_name}</div>
+                            <div class="username">@${user.username}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${user.email}</td>
+                <td>${user.phone || '-'}</td>
+                <td>${user.reference || '-'}</td>
+                <td>
+                    <span class="gender-badge ${user.gender || 'unknown'}">
+                        ${genderDisplay.icon} ${genderDisplay.text}
+                    </span>
+                </td>
+                <td><span class="role-badge ${user.role}">${user.role}</span></td>
+                <td>
+                    <select class="status-dropdown" onchange="changeUserStatus('${user.id}', this.value)" data-current="${user.status}">
+                        <option value="active" ${user.status === 'active' ? 'selected' : ''}>✅ Aktif</option>
+                        <option value="inactive" ${user.status === 'inactive' ? 'selected' : ''}>⏸️ Pasif</option>
+                        <option value="suspended" ${user.status === 'suspended' ? 'selected' : ''}>🚫 Askıda</option>
+                    </select>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm" onclick="viewUser('${user.id}')" title="Kullanıcı detaylarını görüntüle">
+                            👁️ Görüntüle
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="toggleUserStatus('${user.id}')" title="Kullanıcı durumunu değiştir">
+                            ${user.status === 'active' ? '⏸️ Durdur' : '▶️ Aktifleştir'}
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')" title="Kullanıcıyı sil">
+                            🗑️ Sil
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        function getGenderDisplay(gender) {
+            switch(gender) {
+                case 'male': return { icon: '👨', text: 'Erkek' };
+                case 'female': return { icon: '👩', text: 'Bayan' };
+                default: return { icon: '❓', text: 'Belirtilmemiş' };
+            }
+        }
+        
+        function updateFilterStats(filter) {
+            const statsElement = document.getElementById('filterStats');
+            if (!statsElement || !allUsers.length) return;
+            
+            let count = allUsers.length;
+            let filterText = 'Toplam';
+            
+            if (filter === 'male') {
+                count = allUsers.filter(u => u.gender === 'male').length;
+                filterText = 'Erkek';
+            } else if (filter === 'female') {
+                count = allUsers.filter(u => u.gender === 'female').length;
+                filterText = 'Bayan';
+            } else if (filter === 'unknown') {
+                count = allUsers.filter(u => !u.gender || u.gender === null).length;
+                filterText = 'Belirtilmemiş';
+            }
+            
+            statsElement.innerHTML = `📊 ${filterText}: ${count} kullanıcı`;
+        }
+        
+        // Update loadUsersTable function to store all users
+        async function loadUsersTable() {
+            try {
+                const users = await getAllUsers();
+                allUsers = users;
+                
+                // Apply current filter
+                displayFilteredUsers(currentFilter);
+                updateFilterStats(currentFilter);
+                
+                console.log(`👥 ${users.length} kullanıcı yüklendi`);
+            } catch (error) {
+                console.error('❌ Kullanıcılar yüklenirken hata:', error);
+                document.querySelector('#usersTable tbody').innerHTML = `
+                    <tr><td colspan="6" style="text-align: center; color: #666; padding: 40px;">
+                        ⚠️ Kullanıcılar yüklenirken hata oluştu
+                    </td></tr>
+                `;
+            }
+        }
+        
+        // PDF Management Functions
+        function uploadPDF() {
+            const fileInput = document.getElementById('pdfUpload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Lütfen bir PDF dosyası seçin.');
+                return;
+            }
+            
+            if (file.type !== 'application/pdf') {
+                alert('Lütfen sadece PDF dosyası seçin.');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('PDF dosyası 5MB\'dan büyük olamaz.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pdfData = e.target.result;
+                
+                // Store PDF in localStorage as base64
+                localStorage.setItem('userAgreementPDF', pdfData);
+                localStorage.setItem('userAgreementPDFName', file.name);
+                
+                // Update UI
+                updatePDFStatus();
+                
+                alert('PDF başarıyla yüklendi!');
+                
+                // Clear file input
+                fileInput.value = '';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function updatePDFStatus() {
+            const pdfStatus = document.getElementById('pdfStatus');
+            const pdfData = localStorage.getItem('userAgreementPDF');
+            const pdfName = localStorage.getItem('userAgreementPDFName');
+            
+            if (pdfData && pdfName) {
+                pdfStatus.innerHTML = `<span style="color: #28a745;">✅ ${pdfName}</span>`;
+            } else {
+                pdfStatus.innerHTML = '<span style="color: #dc3545;">❌ Yüklenmemiş</span>';
+            }
+        }
+        
+        function testPDFDownload() {
+            const pdfData = localStorage.getItem('userAgreementPDF');
+            const pdfName = localStorage.getItem('userAgreementPDFName') || 'kullanici-sozlesmesi.pdf';
+            
+            if (!pdfData) {
+                alert('Önce bir PDF yükleyin.');
+                return;
+            }
+            
+            downloadPDF(pdfData, pdfName);
+        }
+        
+        function deletePDF() {
+            if (confirm('Kullanıcı sözleşmesi PDF\'ini silmek istediğinizden emin misiniz?')) {
+                localStorage.removeItem('userAgreementPDF');
+                localStorage.removeItem('userAgreementPDFName');
+                updatePDFStatus();
+                alert('PDF başarıyla silindi.');
+            }
+        }
+        
+        function downloadPDF(pdfData, fileName) {
+            try {
+                // Create blob from base64 data
+                const byteCharacters = atob(pdfData.split(',')[1]);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('✅ PDF downloaded:', fileName);
+            } catch (error) {
+                console.error('❌ PDF download error:', error);
+                alert('PDF indirme hatası: ' + error.message);
+            }
+        }
+        
+        // Initialize PDF status on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                updatePDFStatus();
+            }, 1000);
+        });
+        
+        // Logout function
+        async function logoutUser() {
+            if (confirm('Admin panelinden çıkış yapmak istediğinizden emin misiniz?')) {
+                try {
+                    await logout();
+                    console.log('✅ Admin logout completed, redirecting...');
+                    window.location.href = '../index.html';
+                } catch (error) {
+                    console.error('❌ Admin logout error:', error);
+                    // Still redirect even if logout fails
+                    window.location.href = '../index.html';
+                }
+            }
+        }
+
+        // User Status Management Functions
+        async function changeUserStatus(userId, newStatus) {
+            if (!confirm(`Kullanıcının durumunu '${getStatusText(newStatus)}' olarak değiştirmek istediğinizden emin misiniz?`)) {
+                // Revert dropdown to original value
+                const dropdown = event.target;
+                dropdown.value = dropdown.dataset.current;
+                return;
+            }
+
+            try {
+                console.log(`🔄 Kullanıcı durumu değiştiriliyor: ${userId} -> ${newStatus}`);
+                
+                const result = await updateUser(userId, { status: newStatus });
+                
+                if (result.success) {
+                    console.log('✅ Kullanıcı durumu güncellendi:', result);
+                    
+                    // Update the dropdown's current value
+                    const dropdown = event.target;
+                    dropdown.dataset.current = newStatus;
+                    
+                    // Refresh the users table
+                    await loadUsersTable();
+                    
+                    // Show success message
+                    showNotification(`👤 Kullanıcı durumu başarıyla '${getStatusText(newStatus)}' olarak güncellendi!`, 'success');
+                    
+                    // Log activity
+                    await logActivity(getCurrentUser().id, 'user_status_change', 
+                        `Kullanıcı durumu ${getStatusText(newStatus)} olarak değiştirildi (User ID: ${userId})`);
+                } else {
+                    throw new Error(result.error || 'Bilinmeyen hata');
+                }
+            } catch (error) {
+                console.error('❌ Kullanıcı durumu değiştirme hatası:', error);
+                
+                // Revert dropdown to original value
+                const dropdown = event.target;
+                dropdown.value = dropdown.dataset.current;
+                
+                showNotification('❌ Kullanıcı durumu değiştirilemedi: ' + error.message, 'error');
+            }
+        }
+
+        async function toggleUserStatus(userId) {
+            try {
+                // Find current user
+                const user = allUsers.find(u => u.id == userId);
+                if (!user) {
+                    throw new Error('Kullanıcı bulunamadı');
+                }
+
+                const newStatus = user.status === 'active' ? 'inactive' : 'active';
+                const statusText = getStatusText(newStatus);
+                
+                if (!confirm(`${user.first_name} ${user.last_name} adlı kullanıcının durumunu '${statusText}' olarak değiştirmek istediğinizden emin misiniz?`)) {
+                    return;
+                }
+
+                console.log(`🔄 Kullanıcı durumu toggle ediliyor: ${userId} -> ${newStatus}`);
+                
+                const result = await updateUser(userId, { status: newStatus });
+                
+                if (result.success) {
+                    console.log('✅ Kullanıcı durumu güncellendi:', result);
+                    
+                    // Refresh the users table
+                    await loadUsersTable();
+                    
+                    // Show success message
+                    showNotification(`👤 ${user.first_name} ${user.last_name} adlı kullanıcının durumu '${statusText}' olarak güncellendi!`, 'success');
+                    
+                    // Log activity
+                    await logActivity(getCurrentUser().id, 'user_status_toggle', 
+                        `${user.first_name} ${user.last_name} kullanıcısının durumu ${statusText} olarak değiştirildi`);
+                } else {
+                    throw new Error(result.error || 'Bilinmeyen hata');
+                }
+            } catch (error) {
+                console.error('❌ Kullanıcı durumu toggle hatası:', error);
+                showNotification('❌ Kullanıcı durumu değiştirilemedi: ' + error.message, 'error');
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return 'Aktif';
+                case 'inactive': return 'Pasif';
+                case 'suspended': return 'Askıda';
+                default: return 'Bilinmeyen';
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                max-width: 400px;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+
+            // Set background color based on type
+            switch(type) {
+                case 'success':
+                    notification.style.background = '#28a745';
+                    break;
+                case 'error':
+                    notification.style.background = '#dc3545';
+                    break;
+                case 'warning':
+                    notification.style.background = '#ffc107';
+                    notification.style.color = '#212529';
+                    break;
+                default:
+                    notification.style.background = '#007bff';
+            }
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Show notification with animation
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // View user details
+        function viewUser(userId) {
+            const user = allUsers.find(u => u.id == userId);
+            if (!user) {
+                showNotification('❌ Kullanıcı bulunamadı!', 'error');
+                return;
+            }
+
+            const userDetails = `
+👤 Kullanıcı Detayları:
+
+📋 Temel Bilgiler:
+• Ad Soyad: ${user.first_name} ${user.last_name}
+• Kullanıcı Adı: ${user.username}
+• E-posta: ${user.email}
+• Telefon: ${user.phone || 'Belirtilmemiş'}
+
+👥 Sistem Bilgileri:
+• Rol: ${user.role}
+• Durum: ${getStatusText(user.status)}
+• Cinsiyet: ${getGenderDisplay(user.gender).text}
+
+📅 Tarihler:
+• Kayıt Tarihi: ${user.created_at ? new Date(user.created_at).toLocaleString('tr-TR') : 'Bilinmiyor'}
+• Son Giriş: ${user.last_login ? new Date(user.last_login).toLocaleString('tr-TR') : 'Hiç giriş yapmamış'}
+
+🔒 Sözleşme:
+• Kullanıcı Sözleşmesi: ${user.terms_accepted ? 'Kabul Edildi' : 'Kabul Edilmedi'}
+• Kabul Tarihi: ${user.terms_accepted_at ? new Date(user.terms_accepted_at).toLocaleString('tr-TR') : 'Yok'}
+
+📝 Diğer:
+• Referans: ${user.reference || 'Yok'}
+• Bio: ${user.bio || 'Yok'}
+            `;
+
+            alert(userDetails);
+        }
+
+        // Delete user with confirmation
+        async function deleteUser(userId) {
+            const user = allUsers.find(u => u.id == userId);
+            if (!user) {
+                showNotification('❌ Kullanıcı bulunamadı!', 'error');
+                return;
+            }
+
+            const confirmMessage = `${user.first_name} ${user.last_name} (${user.username}) adlı kullanıcıyı kalıcı olarak silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                console.log('🗑️ Kullanıcı siliniyor:', userId);
+                
+                // Use global deleteUser function from auth.js
+                const result = await window.deleteUser(userId);
+                
+                if (result.success) {
+                    console.log('✅ Kullanıcı başarıyla silindi');
+                    
+                    // Refresh the users table
+                    await loadUsersTable();
+                    
+                    // Show success message
+                    showNotification(`🗑️ ${user.first_name} ${user.last_name} adlı kullanıcı başarıyla silindi!`, 'success');
+                    
+                    // Log activity
+                    await logActivity(getCurrentUser().id, 'user_delete', 
+                        `${user.first_name} ${user.last_name} (${user.username}) kullanıcısı silindi`);
+                } else {
+                    throw new Error(result.error || 'Bilinmeyen hata');
+                }
+            } catch (error) {
+                console.error('❌ Kullanıcı silme hatası:', error);
+                showNotification('❌ Kullanıcı silinemedi: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Konfigürasyon - User Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group textarea { height: 80px; resize: vertical; }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .code { background: #f8f9fa; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; }
+        .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .hidden { display: none; margin-top: 20px; }
+        .visible { display: block; margin-top: 20px; }
+        .text-center { text-align: center; }
+        @media (max-width: 768px) { .split { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>🔧 Supabase Konfigürasyon</h1>
+                <p>Supabase bağlantı ayarlarını test edin ve güncelleyin</p>
+            </div>
+
+            <div id="statusContainer">
+                <div class="status info">
+                    <strong>⏳ Hazırlanıyor...</strong><br>
+                    Mevcut konfigürasyon kontrol ediliyor...
+                </div>
+            </div>
+
+            <div class="split">
+                <div>
+                    <h3>🌐 Supabase Bilgileri</h3>
+                    <div class="form-group">
+                        <label for="supabaseUrl">Supabase URL</label>
+                        <input type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="supabaseKey">Anon Key</label>
+                        <textarea id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+                    </div>
+
+                    <button class="btn btn-success" onclick="testNewConfig()">🧪 Test Et</button>
+                    <button class="btn" onclick="saveConfig()">💾 Kaydet</button>
+                    <button class="btn btn-danger" onclick="resetToDefaults()">🔄 Varsayılana Dön</button>
+                </div>
+
+                <div>
+                    <h3>📊 Bağlantı Durumu</h3>
+                    <div id="connectionInfo" class="code">
+                        Bilgiler yükleniyor...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🛠️ Hızlı Düzeltmeler</h3>
+            
+            <div class="split">
+                <div>
+                    <h4>📋 Tablo Oluşturma</h4>
+                    <p>Supabase Dashboard > SQL Editor'da şu komutu çalıştırın:</p>
+                    <button class="btn" onclick="showSQL()">📄 SQL Kodu Göster</button>
+                    <button class="btn btn-success" onclick="showRLSFix()">🔐 RLS Düzeltme</button>
+                    <button class="btn" onclick="createTables()">⚡ Otomatik Tablo Oluştur</button>
+                </div>
+
+                <div>
+                    <h4>🔄 Test İşlemleri</h4>
+                    <button class="btn" onclick="testInsert()">➕ Test Kayıt</button>
+                    <button class="btn" onclick="testSelect()">📖 Test Okuma</button>
+                    <button class="btn" onclick="testActivitiesTable()">📋 Activities Test</button>
+                    <button class="btn" onclick="syncLocalData()">🔄 Local Data Sync</button>
+                </div>
+            </div>
+
+            <div id="sqlContainer" class="hidden">
+                <h4>📄 Supabase Setup SQL</h4>
+                <div class="code" id="sqlCode">SQL kodu yükleniyor...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="text-center">
+                <button class="btn" onclick="window.location.href='simple-login.html'">🔐 Login Sayfası</button>
+                <button class="btn" onclick="window.location.href='simple-register.html'">📝 Kayıt Sayfası</button>
+                <button class="btn" onclick="window.location.href='supabase-test.html'">🧪 Test Sayfası</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        let testClient = null;
+        
+        // Default configuration
+        const defaultConfig = {
+            url: 'https://xgdxqnpsmkbnamtsjhmo.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhnZHhxbnBzbWtibmFtdHNqaG1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NTEzNTIsImV4cCI6MjA3NDEyNzM1Mn0.P31ThhfVKP-hreXJOlezqnzYYQBygm4yituo7WyO2JM'
+        };
+
+        function updateStatus(message, type, details = null) {
+            const statusContainer = document.getElementById('statusContainer');
+            statusContainer.innerHTML = `
+                <div class="status ${type}">
+                    <strong>${message}</strong>
+                    ${details ? `<br><small>${details}</small>` : ''}
+                </div>
+            `;
+        }
+
+        function updateConnectionInfo(info) {
+            document.getElementById('connectionInfo').textContent = JSON.stringify(info, null, 2);
+        }
+
+        async function loadCurrentConfig() {
+            // Load from current database service if available
+            if (window.db) {
+                document.getElementById('supabaseUrl').value = window.db.supabaseUrl || defaultConfig.url;
+                document.getElementById('supabaseKey').value = window.db.supabaseKey || defaultConfig.key;
+                
+                updateConnectionInfo({
+                    currentUrl: window.db.supabaseUrl,
+                    keyLength: window.db.supabaseKey?.length || 0,
+                    isReady: window.db.isSupabaseReady,
+                    isDemoMode: window.db.isDemoMode,
+                    hasClient: !!window.db.supabase
+                });
+                
+                if (window.db.isSupabaseReady) {
+                    updateStatus('✅ Supabase Aktif', 'success', 'Bağlantı çalışıyor');
+                } else if (window.db.supabase) {
+                    updateStatus('⚠️ Supabase Bağlı - Tablo Problemi', 'warning', 'Client var ama query çalışmıyor');
+                } else {
+                    updateStatus('❌ Supabase Bağlanamıyor', 'error', 'Client oluşturulamıyor');
+                }
+            } else {
+                // Load defaults
+                document.getElementById('supabaseUrl').value = defaultConfig.url;
+                document.getElementById('supabaseKey').value = defaultConfig.key;
+                updateStatus('⚠️ Database Service Yok', 'warning', 'Sayfa yeniden yüklenebilir');
+            }
+        }
+
+        async function testNewConfig() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                updateStatus('❌ Eksik Bilgi', 'error', 'URL ve Key gerekli');
+                return;
+            }
+
+            updateStatus('⏳ Test Ediliyor...', 'info', 'Bağlantı kontrol ediliyor');
+
+            try {
+                // Create test client
+                testClient = window.supabase.createClient(url, key);
+                
+                // Test connection
+                const { data, error } = await testClient
+                    .from('users')
+                    .select('id, username')
+                    .limit(1);
+
+                if (error) {
+                    updateStatus('❌ Test Başarısız', 'error', `${error.message} (${error.code})`);
+                    updateConnectionInfo({
+                        error: error.message,
+                        code: error.code,
+                        hint: error.hint,
+                        testUrl: url,
+                        keyValid: key.startsWith('eyJ')
+                    });
+                } else {
+                    updateStatus('✅ Test Başarılı', 'success', `${data?.length || 0} kayıt bulundu`);
+                    updateConnectionInfo({
+                        status: 'success',
+                        recordsFound: data?.length || 0,
+                        testUrl: url,
+                        keyLength: key.length
+                    });
+                }
+            } catch (error) {
+                updateStatus('❌ Test Hatası', 'error', error.message);
+                updateConnectionInfo({
+                    exception: error.message,
+                    testUrl: url
+                });
+            }
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                updateStatus('❌ Eksik Bilgi', 'error', 'URL ve Key gerekli');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('supabase_config', JSON.stringify({ url, key }));
+            
+            updateStatus('💾 Kaydedildi', 'success', 'Sayfayı yenileyin');
+            
+            // If database service exists, update it
+            if (window.db) {
+                window.db.supabaseUrl = url;
+                window.db.supabaseKey = key;
+                // Reinitialize
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        }
+
+        function resetToDefaults() {
+            document.getElementById('supabaseUrl').value = defaultConfig.url;
+            document.getElementById('supabaseKey').value = defaultConfig.key;
+            localStorage.removeItem('supabase_config');
+            updateStatus('🔄 Varsayılan Ayarlar', 'info', 'Varsayılan konfigürasyon yüklendi');
+        }
+
+        async function testInsert() {
+            if (!testClient) {
+                updateStatus('❌ Test Client Yok', 'error', 'Önce bağlantı test edin');
+                return;
+            }
+
+            const testUser = {
+                username: 'config_test_' + Date.now(),
+                email: `configtest${Date.now()}@example.com`,
+                password: 'test123',
+                first_name: 'Config',
+                last_name: 'Test',
+                role: 'user',
+                gender: 'male',
+                created_at: new Date().toISOString()
+            };
+
+            try {
+                const { data, error } = await testClient
+                    .from('users')
+                    .insert([testUser])
+                    .select()
+                    .single();
+
+                if (error) {
+                    updateStatus('❌ Insert Başarısız', 'error', error.message);
+                } else {
+                    updateStatus('✅ Insert Başarılı', 'success', `ID: ${data.id}`);
+                }
+            } catch (error) {
+                updateStatus('❌ Insert Hatası', 'error', error.message);
+            }
+        }
+
+        async function testActivitiesTable() {
+            if (!testClient) {
+                updateStatus('❌ Test Client Yok', 'error', 'Önce bağlantı test edin');
+                return;
+            }
+
+            try {
+                updateStatus('⏳ Activities Tablosu Test Ediliyor...', 'info', '');
+
+                // Test activities table existence
+                const { data, error } = await testClient
+                    .from('activities')
+                    .select('id, action, description, created_at')
+                    .limit(1);
+
+                if (error) {
+                    if (error.message.includes('relation "activities" does not exist') || 
+                        error.code === 'PGRST116') {
+                        updateStatus('❌ Activities Tablosu Yok', 'error', 
+                            'supabase-setup.sql dosyasını Supabase Dashboard\'da çalıştırın');
+                    } else {
+                        updateStatus('❌ Activities Test Başarısız', 'error', error.message);
+                    }
+                } else {
+                    updateStatus('✅ Activities Tablosu Mevcut', 'success', 
+                        `${data?.length || 0} aktivite bulundu`);
+                }
+            } catch (error) {
+                updateStatus('❌ Activities Test Exception', 'error', error.message);
+            }
+        }
+
+        function showRLSFix() {
+            const sqlContainer = document.getElementById('sqlContainer');
+            const sqlCode = document.getElementById('sqlCode');
+            
+            sqlCode.textContent = `-- RLS (Row Level Security) Düzeltme
+-- Bu kod RLS problemini çözer
+
+-- 1. RLS'i kapat (en kolay çözüm)
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE user_activities DISABLE ROW LEVEL SECURITY;
+
+-- 2. Veya alternatif olarak herkese izin ver
+-- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "Allow all for anon users" ON users 
+--   FOR ALL USING (true) WITH CHECK (true);
+
+-- 3. Test sorgusu
+SELECT COUNT(*) as user_count FROM users;
+
+-- 4. Test insert
+INSERT INTO users (username, email, password, first_name, last_name, role, gender, terms_accepted)
+VALUES ('test_rls', 'test@example.com', 'test123', 'Test', 'User', 'user', 'male', true);`;
+            
+            sqlContainer.className = 'visible';
+            updateStatus('🔐 RLS Düzeltme Kodu', 'info', 'Bu kodu Supabase SQL Editor\'da çalıştırın');
+        }
+
+        function showSQL() {
+            const sqlContainer = document.getElementById('sqlContainer');
+            const sqlCode = document.getElementById('sqlCode');
+            
+            sqlCode.textContent = `-- Users tablosu oluştur
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    role VARCHAR(20) DEFAULT 'user',
+    status VARCHAR(20) DEFAULT 'active',
+    gender VARCHAR(10),
+    phone VARCHAR(20),
+    bio TEXT,
+    terms_accepted BOOLEAN DEFAULT FALSE,
+    terms_accepted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Trigger for updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $trigger$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$trigger$ language 'plpgsql';
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS'i kapat
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+
+-- Admin kullanıcısı ekle
+INSERT INTO users (username, email, password, first_name, last_name, role, gender, terms_accepted)
+VALUES ('admin', 'admin@example.com', 'admin123', 'Admin', 'User', 'admin', 'male', true)
+ON CONFLICT (username) DO NOTHING;`;
+            
+            sqlContainer.className = 'visible';
+            updateStatus('📄 SQL Kodu', 'info', 'Bu kodu Supabase SQL Editor\'da çalıştırın');
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for other scripts to load
+            setTimeout(loadCurrentConfig, 1000);
+        });
+    </script>
+</body>
+</html>

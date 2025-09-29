@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Test - Kullanıcı Sözleşmesi</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .article { margin: 20px 0; }
+        .button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
+        .button:hover { background: #0056b3; }
+        .info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 PDF Test Aracı</h1>
+        <p>Admin paneli için örnek kullanıcı sözleşmesi PDF'i oluşturun</p>
+    </div>
+
+    <div class="info">
+        <h3>📄 Kullanıcı Sözleşmesi Örneği</h3>
+        <p>Bu basit HTML içerik, PDF olarak dönüştürülecek örnek kullanıcı sözleşmesi metnidir.</p>
+    </div>
+
+    <div class="article">
+        <h2>KULLANICI SÖZLEŞMESİ</h2>
+        
+        <h3>Madde 1 - Taraflar</h3>
+        <p>Bu sözleşme, hayırlıolsun.com kullanıcı yönetim sistemi ile kullanıcı arasında akdedilmiştir.</p>
+        
+        <h3>Madde 2 - Hizmet Kapsamı</h3>
+        <p>Platform, kullanıcılara hesap oluşturma, profil yönetimi ve güvenli giriş hizmetleri sunar.</p>
+        
+        <h3>Madde 3 - Kullanıcı Yükümlülükleri</h3>
+        <ul>
+            <li>Gerçek ve güncel bilgiler sağlamak</li>
+            <li>Hesap güvenliğini korumak</li>
+            <li>Platformu kurallara uygun kullanmak</li>
+            <li>Başkalarının haklarını ihlal etmemek</li>
+        </ul>
+        
+        <h3>Madde 4 - Gizlilik</h3>
+        <p>Kullanıcı bilgileri gizlilik politikamız çerçevesinde korunur ve üçüncü şahıslarla paylaşılmaz.</p>
+        
+        <h3>Madde 5 - Sorumluluk</h3>
+        <p>Platform, kullanıcıların güvenliği için gerekli tedbirleri alır ancak kullanıcı kaynaklı zararlardan sorumlu tutulamaz.</p>
+        
+        <p style="margin-top: 40px;"><strong>Yürürlük Tarihi:</strong> 27 Eylül 2025</p>
+        <p><strong>Güncellenme:</strong> Bu sözleşme herhangi bir zamanda güncellenebilir.</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <button class="button" onclick="generatePDF()">📄 PDF Oluştur ve İndir</button>
+        <button class="button" onclick="goToAdmin()" style="background: #28a745;">👑 Admin Paneline Git</button>
+    </div>
+
+    <script>
+        function generatePDF() {
+            // Create a simple PDF content as data URL
+            // This is a basic example - for production, use a proper PDF library
+            const pdfContent = `
+KULLANICI SÖZLEŞMESİ
+
+Madde 1 - Taraflar
+Bu sözleşme, hayırlıolsun.com kullanıcı yönetim sistemi ile kullanıcı arasında akdedilmiştir.
+
+Madde 2 - Hizmet Kapsamı  
+Platform, kullanıcılara hesap oluşturma, profil yönetimi ve güvenli giriş hizmetleri sunar.
+
+Madde 3 - Kullanıcı Yükümlülükleri
+- Gerçek ve güncel bilgiler sağlamak
+- Hesap güvenliğini korumak
+- Platformu kurallara uygun kullanmak
+- Başkalarının haklarını ihlal etmemek
+
+Madde 4 - Gizlilik
+Kullanıcı bilgileri gizlilik politikamız çerçevesinde korunur ve üçüncü şahıslarla paylaşılmaz.
+
+Madde 5 - Sorumluluk
+Platform, kullanıcıların güvenliği için gerekli tedbirleri alır ancak kullanıcı kaynaklı zararlardan sorumlu tutulamaz.
+
+Yürürlük Tarihi: 27 Eylül 2025
+Güncellenme: Bu sözleşme herhangi bir zamanda güncellenebilir.
+            `.trim();
+
+            // Create a text file as PDF substitute (for demo purposes)
+            const blob = new Blob([pdfContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'kullanici-sozlesmesi.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('📄 Örnek sözleşme metin dosyası indirildi!\\n\\nGerçek kullanım için:\\n1. Bu metni PDF olarak kaydedin\\n2. Admin panelinden PDF yükleyin');
+        }
+
+        function goToAdmin() {
+            window.location.href = 'admin/dashboard.html';
+        }
+    </script>
+</body>
+</html>

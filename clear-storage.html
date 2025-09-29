@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Temizleme</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .btn { padding: 15px 30px; margin: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #c82333; }
+        .success { background: #28a745; }
+        .success:hover { background: #218838; }
+        .result { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        pre { background: #f1f1f1; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🧹 LocalStorage Temizleme Aracı</h1>
+    
+    <div class="warning result">
+        <strong>⚠️ DİKKAT:</strong> Bu işlem tüm localStorage verilerini kalıcı olarak silecektir!
+    </div>
+
+    <div>
+        <h3>1. Mevcut LocalStorage İçeriği</h3>
+        <button class="btn success" onclick="checkCurrentStorage()">📋 Mevcut Verileri Göster</button>
+        <div id="currentStorage"></div>
+    </div>
+
+    <div>
+        <h3>2. LocalStorage Temizleme</h3>
+        <button class="btn" onclick="clearAllStorage()">🗑️ TÜM VERİLERİ SİL</button>
+        <button class="btn success" onclick="clearUserDataOnly()">👤 Sadece Kullanıcı Verilerini Sil</button>
+        <div id="clearResult"></div>
+    </div>
+
+    <div>
+        <h3>3. Tarayıcı Cache Temizleme</h3>
+        <button class="btn" onclick="clearBrowserCache()">🧽 Tarayıcı Cache Temizle</button>
+        <div id="cacheResult"></div>
+    </div>
+
+    <div>
+        <h3>4. Kontrol</h3>
+        <button class="btn success" onclick="verifyClearing()">✅ Temizleme Doğrula</button>
+        <div id="verifyResult"></div>
+    </div>
+
+    <script>
+        function checkCurrentStorage() {
+            const result = document.getElementById('currentStorage');
+            const storageData = {};
+            const storageSize = localStorage.length;
+            
+            console.log('📊 LocalStorage Key Sayısı:', storageSize);
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                storageData[key] = value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : null;
+                console.log(`📋 ${key}:`, value);
+            }
+            
+            result.innerHTML = `
+                <div class="result">
+                    <strong>📊 LocalStorage İçeriği (${storageSize} adet):</strong><br><br>
+                    <pre>${JSON.stringify(storageData, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        function clearAllStorage() {
+            const result = document.getElementById('clearResult');
+            const initialCount = localStorage.length;
+            
+            console.log('🧹 Tüm localStorage temizleniyor...');
+            console.log('📊 Temizlik öncesi key sayısı:', initialCount);
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Also clear sessionStorage
+            sessionStorage.clear();
+            
+            // Verify clearing
+            const finalCount = localStorage.length;
+            
+            console.log('📊 Temizlik sonrası key sayısı:', finalCount);
+            
+            result.innerHTML = `
+                <div class="result ${finalCount === 0 ? 'success' : 'error'}">
+                    <strong>${finalCount === 0 ? '✅ BAŞARILI' : '❌ BAŞARISIZ'}</strong><br>
+                    Temizlik öncesi: ${initialCount} adet<br>
+                    Temizlik sonrası: ${finalCount} adet<br><br>
+                    ${finalCount === 0 ? 
+                        '🎉 Tüm localStorage verileri başarıyla silindi!' : 
+                        '⚠️ Bazı veriler silinemedi. Tarayıcıyı yeniden başlatmayı deneyin.'
+                    }
+                </div>
+            `;
+        }
+
+        function clearUserDataOnly() {
+            const result = document.getElementById('clearResult');
+            const userKeys = [
+                'mockUsers',
+                'mockActivities', 
+                'currentUser',
+                'users',
+                'activities',
+                'userData',
+                'userProfiles',
+                'demoUsers',
+                'supabase_config'
+            ];
+            
+            let removedCount = 0;
+            const removedKeys = [];
+            
+            console.log('👤 Kullanıcı verileri temizleniyor...');
+            
+            userKeys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    removedKeys.push(key);
+                    removedCount++;
+                    console.log(`✅ ${key} silindi`);
+                }
+            });
+            
+            // Also clear session storage user data
+            sessionStorage.removeItem('currentUser');
+            
+            result.innerHTML = `
+                <div class="result success">
+                    <strong>✅ Kullanıcı Verileri Temizlendi</strong><br>
+                    Silinen key sayısı: ${removedCount}<br>
+                    Silinen keyler: ${removedKeys.join(', ') || 'Hiçbiri'}<br><br>
+                    🧹 SessionStorage'dan currentUser da silindi
+                </div>
+            `;
+        }
+
+        function clearBrowserCache() {
+            const result = document.getElementById('cacheResult');
+            
+            // Force reload all resources
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+            
+            result.innerHTML = `
+                <div class="result">
+                    <strong>🧽 Tarayıcı Cache Temizleme</strong><br><br>
+                    ✅ Service Worker registration temizlendi<br>
+                    📝 Manuel adımlar:<br>
+                    • F12 > Application > Storage > Clear storage<br>
+                    • Ctrl+Shift+R (Hard refresh)<br>
+                    • Ctrl+Shift+Delete (Tarayıcı temizleme)
+                </div>
+            `;
+        }
+
+        function verifyClearing() {
+            const result = document.getElementById('verifyResult');
+            const currentCount = localStorage.length;
+            const sessionCount = sessionStorage.length;
+            
+            const userKeys = ['mockUsers', 'mockActivities', 'currentUser', 'users', 'activities', 'userData'];
+            const remainingUserKeys = userKeys.filter(key => 
+                localStorage.getItem(key) || sessionStorage.getItem(key)
+            );
+            
+            const isClean = currentCount === 0 || remainingUserKeys.length === 0;
+            
+            result.innerHTML = `
+                <div class="result ${isClean ? 'success' : 'error'}">
+                    <strong>${isClean ? '✅ TEMİZ' : '⚠️ HALA VERİ VAR'}</strong><br><br>
+                    📊 LocalStorage: ${currentCount} key<br>
+                    📊 SessionStorage: ${sessionCount} key<br>
+                    👤 Kalan kullanıcı verileri: ${remainingUserKeys.join(', ') || 'Yok'}<br><br>
+                    ${isClean ? 
+                        '🎉 Sistem temiz! Artık sadece Supabase kullanılacak.' :
+                        '🔄 Sayfayı yenileyin veya tarayıcıyı yeniden başlatın.'
+                    }
+                </div>
+            `;
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', function() {
+            setTimeout(checkCurrentStorage, 500);
+        });
+    </script>
+</body>
+</html>

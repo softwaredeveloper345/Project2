@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sayfası</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .btn:hover { background: #0056b3; }
+        .working { color: green; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test Sayfası</h1>
+    <div class="working">✅ Server çalışıyor!</div>
+    
+    <h2>Login İşlemleri:</h2>
+    
+    <button class="btn" onclick="testAdminLogin()">Admin Giriş Test</button>
+    <button class="btn" onclick="testUserLogin()">User Giriş Test</button>
+    <button class="btn" onclick="goToLogin()">Login Sayfasına Git</button>
+    
+    <div id="result" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px;"></div>
+    
+    <script>
+        // Basit admin login
+        function testAdminLogin() {
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: 1,
+                username: 'admin',
+                role: 'admin',
+                first_name: 'Admin',
+                last_name: 'User'
+            }));
+            
+            document.getElementById('result').innerHTML = 
+                '<div style="color: green;">✅ Admin olarak giriş yapıldı!</div>';
+                
+            setTimeout(() => {
+                window.location.href = 'admin/dashboard.html';
+            }, 2000);
+        }
+        
+        // Basit user login  
+        function testUserLogin() {
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: 2,
+                username: 'john_doe',
+                role: 'user',
+                first_name: 'John',
+                last_name: 'Doe',
+                gender: 'male'
+            }));
+            
+            document.getElementById('result').innerHTML = 
+                '<div style="color: green;">✅ User olarak giriş yapıldı!</div>';
+                
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 2000);
+        }
+        
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+        
+        // Clear any existing login
+        function clearLogin() {
+            localStorage.removeItem('currentUser');
+            document.getElementById('result').innerHTML = 
+                '<div style="color: red;">❌ Çıkış yapıldı!</div>';
+        }
+    </script>
+    
+    <hr style="margin: 40px 0;">
+    
+    <h3>Manuel Test:</h3>
+    <button class="btn" onclick="clearLogin()">Çıkış Yap</button>
+    
+    <p><strong>Direk Linkler:</strong></p>
+    <a href="index.html" style="color: #007bff; text-decoration: none; margin: 0 10px;">Ana Sayfa</a> |
+    <a href="login.html" style="color: #007bff; text-decoration: none; margin: 0 10px;">Login</a> |
+    <a href="register.html" style="color: #007bff; text-decoration: none; margin: 0 10px;">Register</a> |
+    <a href="dashboard.html" style="color: #007bff; text-decoration: none; margin: 0 10px;">User Dashboard</a> |
+    <a href="admin/dashboard.html" style="color: #007bff; text-decoration: none; margin: 0 10px;">Admin Dashboard</a>
+    
+</body>
+</html>

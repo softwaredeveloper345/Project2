@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol - User Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        .auth-header h1 { color: #333; font-size: 28px; margin-bottom: 8px; }
+        .auth-header p { color: #666; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+        .btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn:hover { background: #0056b3; transform: translateY(-1px); }
+        .auth-footer { text-align: center; margin-top: 20px; color: #666; }
+        .auth-footer a { color: #007bff; text-decoration: none; cursor: pointer; }
+        .auth-footer a:hover { text-decoration: underline; }
+        .password-requirements { font-size: 12px; color: #666; margin-top: 5px; }
+        .password-requirements ul { margin-left: 20px; }
+        .password-requirements li { margin: 3px 0; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; }
+        .checkbox-group input[type="checkbox"] { width: auto; margin-top: 4px; }
+        .checkbox-group label { margin-bottom: 0; font-size: 14px; line-height: 1.4; }
+        .gender-options { display: flex; gap: 20px; }
+        .gender-option { display: flex; align-items: center; gap: 8px; }
+        .gender-option input[type="radio"] { width: auto; }
+        
+        /* Modal Styles */
+        .modal-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0, 0, 0, 0.6); 
+            z-index: 1000; 
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: white; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 700px; 
+            max-height: 80vh; 
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .modal-header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 20px; 
+            position: relative;
+        }
+        
+        .modal-header h2 { 
+            margin: 0; 
+            font-size: 24px; 
+        }
+        
+        .close-btn { 
+            position: absolute; 
+            top: 15px; 
+            right: 20px; 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 28px; 
+            cursor: pointer; 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+        
+        .close-btn:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+        }
+        
+        .modal-body { 
+            padding: 30px; 
+            max-height: 60vh; 
+            overflow-y: auto; 
+            line-height: 1.6; 
+            color: #333;
+        }
+        
+        .modal-body h3 { 
+            color: #667eea; 
+            margin: 25px 0 15px 0; 
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 8px;
+        }
+        
+        .modal-body p { 
+            margin-bottom: 15px; 
+            text-align: justify;
+        }
+        
+        .modal-body ul { 
+            margin: 15px 0; 
+            padding-left: 25px; 
+        }
+        
+        .modal-body li { 
+            margin-bottom: 8px; 
+        }
+        
+        .modal-footer { 
+            padding: 20px 30px; 
+            background: #f8f9fa; 
+            border-top: 1px solid #e9ecef; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .modal-footer-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-footer .btn { 
+            width: auto; 
+            padding: 10px 20px; 
+            font-size: 14px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-download {
+            background: #28a745 !important;
+            border: 1px solid #28a745 !important;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-download:hover {
+            background: #218838 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-icon {
+            font-size: 16px;
+        }
+        
+        .btn-secondary { 
+            background: #6c757d; 
+            border: 1px solid #6c757d;
+        }
+        
+        .btn-secondary:hover { 
+            background: #545b62; 
+        }
+        
+        .terms-link { 
+            color: #007bff; 
+            text-decoration: underline; 
+            cursor: pointer; 
+        }
+        
+        .terms-note { 
+            color: #c83838; 
+            font-size: 14px; 
+            margin-top: 5px; 
+            display: block; 
+        }
+        
+        .agreement-footer { 
+            margin-top: 30px; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-left: 4px solid #667eea; 
+            font-size: 14px; 
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .auth-card { padding: 30px 20px; margin: 20px; }
+            .form-row { grid-template-columns: 1fr; }
+            .gender-options { flex-direction: column; gap: 10px; }
+            .modal-content { 
+                width: 95%; 
+                max-height: 90vh; 
+            }
+            .modal-body { 
+                padding: 20px; 
+                max-height: 70vh; 
+            }
+            .modal-header h2 { 
+                font-size: 20px; 
+                padding-right: 40px;
+            }
+            .modal-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .modal-footer-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            .btn-download {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Kayıt Ol</h1>
+            <p>Yeni hesap oluşturun</p>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <form id="registerForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">Ad</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="last_name">Soyad</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" required minlength="3" pattern="[a-zA-Z0-9_]+">
+                <div class="password-requirements">
+                    <ul>
+                        <li>En az 3 karakter</li>
+                        <li>Sadece harf, rakam ve alt çizgi</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">E-posta</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Telefon</label>
+                <input type="tel" id="phone" name="phone" placeholder="05XX XXX XX XX">
+            </div>
+            
+            <!-- <div class="form-group">
+                <label for="reference">Referans</label>
+                <input type="text" id="reference" name="reference" placeholder="Referans kişi adı (isteğe bağlı)">
+            </div> -->
+            
+            <div class="form-group">
+                <label>Cinsiyet</label>
+                <div class="gender-options">
+                    <div class="gender-option">
+                        <input type="radio" id="male" name="gender" value="male">
+                        <label for="male">👨 Erkek</label>
+                    </div>
+                    <div class="gender-option">
+                        <input type="radio" id="female" name="gender" value="female">
+                        <label for="female">🧕 Bayan</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" name="password" required minlength="6">
+                    <div class="password-requirements">
+                        <ul>
+                            <li>En az 6 karakter</li>
+                            <li>Güvenli bir şifre seçin</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Şifre Tekrar</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+                </div>
+            </div>
+            
+            <div class="form-group full-width">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms_accepted" name="terms_accepted" required>
+                    <label for="terms_accepted">
+                        <a href="#" onclick="showUserAgreement()" class="terms-link"><strong>Kullanıcı Sözleşmesi</strong></a> ve <strong>Gizlilik Politikası</strong>'nı okudum, anladım ve kabul ediyorum. 
+                        Kişisel verilerimin işlenmesine onay veriyorum.
+                    </label>
+                </div>
+                <small class="terms-note">
+                    📄 Kullanıcı Sözleşmesi'ne tıklayarak detayları okuyabilirsiniz.
+                </small>
+            </div>
+            
+            <button type="submit" class="btn">Kayıt Ol</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Zaten hesabınız var mı? <a onclick="goToLogin()">Giriş yapın</a></p>
+            <p><a onclick="goToHome()">Ana Sayfaya Dön</a></p>
+        </div>
+    </div>
+    
+    <!-- User Agreement Modal -->
+    <div id="userAgreementModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU KAPSAMINDA AYDINLATMA METNİ</h2>
+                <button class="close-btn" onclick="closeUserAgreementModal()">&times;</button>
+            </div>
+            <div class="modal-body">        
+                <h3>1.Veri Sorumlusu</h3>
+                <p>6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca www.hayırlıolsun.com veri sorumlusu olarak hareket etmektedir</p>
+                
+                <h3>2-Verilerin İşlenmesi</h3>
+                <p>www.hayırlıolsun.com olarak düzenlediğiniz bu form uyarınca kişisel verileriniz; işbu etkinlik ve diğer etkinliklerin planlanması, duyurulması, üçüncü kişilerin bilgilendirilmesi ve oluşumumuzun tanıtılması amacıyla katılımcıların katılım durumu online/fiziki form ile toplanmakta, kimlik bilgisi, fotoğraf ve video çekimleri kaydedilmekte, etkinlik sırasında çekilen görüntüler internet sitesi, sosyal medya hesapları, dergi ve yazılı/görsel her türlü sosyal platformlarımızda paylaşılabilmekte, çalışma faaliyetlerinin sürdürülebilmesi, yetkililerin erişebilmesi, talep ve şikayetlerin takibi, risk yönetim süreçlerinin yönetilmesi, görevlendirme, raporlama, planlama, insan kaynakları ve iletişim faaliyetlerinin yürütülmesi için işlenmektedir.<p>
+                <h3>3-Kişisel Verilerinizin Aktarılması</h3>
+                <p>Site yönetimimiz, 6698 sayılı Kanunun 4’üncü maddesinde sayılan genel ilkelere ve 8 ve 9’uncu maddesinde öngörülen şartlara uymak ve gerekli güvenlik önlemlerini almak kaydıyla, yukarıda belirtilen amaçlarla sınırlı olmak üzere kişisel verilerinizi yasal olarak aktarılması gereken idari ve resmi makamlara, faaliyetlerimizi yürütmek üzere dışarıdan hizmet alınan üçüncü kişilere, işbirliği yaptığımız ya da proje/program ortağı olunan yurtiçi/yurtdışı/uluslararası kuruluşlara, alt yüklenicilere, bağımsız denetim ve destek hizmeti alınan kuruluşlar gibi tüzel kişilere ve işbirliği içerisinde olan üçüncü kişilerin hukuki ve ticari güvenliğinin sağlanması ve elektronik ve fiziksel ortamların güvenliğinin sağlanması ile hukuki zorunluluklar nedeniyle ve yasal sınırlamalar çerçevesinde aktarılabilecektir.</p>
+                
+                <h3>4-Veri Sahibinin Hakları</h3>
+                <p>6698 sayılı Kanunun 11. maddesi uyarınca bu metnin 6. maddesinde öngörülen usule göre Şubemize başvurarak kişisel verilerinizin;</p>
+                <ul>
+                    <li>İşlenip işlenmediğini öğrenme, </li>
+                    <li>İşlenmişse bilgi talep etme,</li>
+                    <li>İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, </li>
+                    <li>Yurt içinde / yurt dışında aktarıldığı 3. kişileri bilme, </li>
+                    <li>Eksik / yanlış işlenmişse düzeltilmesini isteme,  </li>
+                    <li>Kişisel verilerin işlenmesini gerektiren sebeplerin ortadan kalkması halinde kişisel verilerin silinmesini veya yok edilmesini isteme,  </li>
+                    <li>Aktarıldığı 3. kişilere yukarıda sayılan 5. ve 6. bentler uyarınca yapılan işlemlerin bildirilmesini isteme,  </li>
+                    <li>Münhasıran otomatik sistemler ile analiz edilmesi nedeniyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme,  </li>
+                    <li>Kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız hâlinde zararın giderilmesini talep etme hakkına sahipsiniz.  </li>
+                </ul>
+                
+                <h3>5-	Verilerin İşlenmesi ve Aktarılmasına Dair Açık Rıza Metni</h3>
+                <p>www.hayırlıolsun.com tarafından tarafıma iletilen etkinlik, program ve projelere katılımla ilgili aydınlatma metnini okudum ve anladım. Açık rıza vermek zorunda olmadığım hususunda bilgi sahibiyim. Bu kapsamda katılım durumumun siteye kayıt suretiyle toplanmasına, Ad, Soyad, Kimlik Bilgileri, Fotoğraf, Video Çekimi, Ses Kaydı ve diğer kişisel verilerimin aydınlatma metninde belirtilen amaçlarla işlenip kaydedilmesine ve www.hayırlıolsun.com ve bu kapsamda teşekkül etmiş bulunan kuruluşlarla birlikte işbirliği yapılan diğer üçüncü kişi veya kurumlara aktarılmasına açık rızam vardır. Açık rızamı işbu siteye kayıt olurken ilettiğimi/gösterdiğimi beyan ederim.</p>
+                
+                <h3>İmza</h3>
+                <p>İsim-Soyisim:</p>
+                <p>Tarih:  </p>
+                <p>İmza::</p>
+
+                <!-- <h3>7. İletişim</h3>
+                <p>Sorularınız için platform yönetimi ile iletişime geçebilirsiniz. Geri bildirimleriniz değerlidir.</p> -->
+                
+                <!-- <p class="agreement-footer">
+                    <strong>Son Güncelleme:</strong> 28 Eylül 2025<br>
+                    Bu sözleşme Türk hukuku kapsamında düzenlenmiştir.
+                </p>
+            </div> -->
+            <div class="modal-footer">
+                <button class="btn btn-download" onclick="downloadUserAgreementPDF(event)">
+                    <span class="btn-icon">📄</span>
+                    PDF İndir
+                </button>
+                <div class="modal-footer-actions">
+                    <button class="btn btn-secondary" onclick="closeUserAgreementModal()">Kapat</button>
+                    <button class="btn" onclick="acceptAndCloseModal()">Kabul Et ve Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="assets/js/database-fixed.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                if (currentUser.role === 'admin') {
+                    window.location.href = 'admin/dashboard.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+                return;
+            }
+        });
+
+        // Handle registration form submission
+        document.getElementById('registerForm').addEventListener('submit', handleRegisterSubmit);
+        
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                username: formData.get('username').trim(),
+                email: formData.get('email').trim(),
+                password: formData.get('password'),
+                confirm_password: formData.get('confirm_password'),
+                first_name: formData.get('first_name').trim(),
+                last_name: formData.get('last_name').trim(),
+                phone: formData.get('phone') ? formData.get('phone').trim() : '',
+                reference: formData.get('reference') ? formData.get('reference').trim() : '',
+                gender: formData.get('gender'),
+                terms_accepted: formData.get('terms_accepted') === 'on'
+            };
+            
+            // Validation
+            if (!userData.username || !userData.email || !userData.password || !userData.first_name || !userData.last_name) {
+                showAlert('Tüm zorunlu alanları doldurun.', 'error');
+                return;
+            }
+            
+            if (!userData.terms_accepted) {
+                showAlert('Kullanıcı sözleşmesini kabul etmelisiniz.', 'error');
+                return;
+            }
+            
+            if (userData.password.length < 6) {
+                showAlert('Şifre en az 6 karakter olmalıdır.', 'error');
+                return;
+            }
+            
+            if (userData.password !== userData.confirm_password) {
+                showAlert('Şifreler eşleşmiyor.', 'error');
+                return;
+            }
+            
+            if (userData.username.length < 3) {
+                showAlert('Kullanıcı adı en az 3 karakter olmalıdır.', 'error');
+                return;
+            }
+            
+            const usernameRegex = /^[a-zA-Z0-9_]+$/;
+            if (!usernameRegex.test(userData.username)) {
+                showAlert('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.', 'error');
+                return;
+            }
+            
+            try {
+                showAlert('⏳ Kayıt işlemi devam ediyor...', 'success');
+                
+                console.log('Registering user:', userData);
+                const result = await register(userData);
+                console.log('Register result:', result);
+                
+                if (result && result.success) {
+                    showAlert('🎉 KAYIT BAŞARILI! Giriş sayfasına yönlendiriliyorsunuz...', 'success');
+                    
+                    // Clear form
+                    e.target.reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2500);
+                } else {
+                    showAlert(result?.message || 'Kayıt işlemi başarısız!', 'error');
+                }
+            } catch (error) {
+                console.error('Register form error:', error);
+                showAlert('❌ Kayıt işlemi sırasında hata oluştu. Tekrar deneyin.', 'error');
+            }
+        }
+        
+        // Password confirmation validation
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (password !== confirmPassword) {
+                this.setCustomValidity('Şifreler eşleşmiyor');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Username validation
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value;
+            const regex = /^[a-zA-Z0-9_]+$/;
+            
+            if (username && !regex.test(username)) {
+                this.setCustomValidity('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+        
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+        
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        function downloadUserAgreementPDF(event) {
+            event.preventDefault();
+            
+            // Simple HTML download that can be converted to PDF
+            const htmlContent = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcı Sözleşmesi</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+        h1 { text-align: center; font-size: 18px; margin-bottom: 10px; }
+        h2 { text-align: center; font-size: 16px; margin-bottom: 30px; color: #666; }
+        h3 { font-size: 14px; font-weight: bold; margin: 20px 0 10px 0; }
+        p { text-align: justify; margin-bottom: 15px; font-size: 12px; }
+        .signature { margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; }
+        .help { margin-top: 30px; padding: 15px; background: #f0f8ff; border-left: 4px solid #0066cc; }
+        @media print { .help { display: none; } }
+    </style>
+</head>
+<body>
+    <h1>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU</h1>
+    <h2>KAPSAMINDA AYDINLATMA METNİ</h2>
+    
+    <h3>1. Veri Sorumlusu</h3>
+    <p>6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca www.hayırlıolsun.com veri sorumlusu olarak hareket etmektedir.</p>
+    
+    <h3>2. Verilerin İşlenmesi</h3>
+    <p>www.hayırlıolsun.com olarak düzenlediğiniz bu form uyarınca kişisel verileriniz; işbu etkinlik ve diğer etkinliklerin planlanması, duyurulması, üçüncü kişilerin bilgilendirilmesi ve oluşumumuzun tanıtılması amacıyla işlenmektedir.</p>
+    
+    <h3>3. Kişisel Verilerinizin Aktarılması</h3>
+    <p>Site yönetimimiz, yasal olarak aktarılması gereken idari ve resmi makamlara, faaliyetlerimizi yürütmek üzere dışarıdan hizmet alınan üçüncü kişilere aktarabilecektir.</p>
+    
+    <h3>4. Veri Sahibinin Hakları</h3>
+    <p>6698 sayılı Kanunun 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, düzeltilmesini isteme, silinmesini isteme haklarınız bulunmaktadır.</p>
+    
+    <h3>5. Açık Rıza Metni</h3>
+    <p>Kişisel verilerimin aydınlatma metninde belirtilen amaçlarla işlenmesine ve üçüncü kişi veya kurumlara aktarılmasına açık rızam vardır.</p>
+    
+    <div class="signature">
+        <h3>İMZA</h3>
+        <p>İsim-Soyisim: _____________________________________</p>
+        <p>Tarih: ${new Date().toLocaleDateString('tr-TR')}</p>
+        <p>İmza: _____________________________________</p>
+    </div>
+    
+    <div class="help">
+        <h4>📄 PDF Olarak Kaydetme:</h4>
+        <p><strong>Ctrl+P</strong> → <strong>"PDF olarak kaydet"</strong> → <strong>Kaydet</strong></p>
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'kullanici-sozlesmesi.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('✅ Dosya indirildi! Açın → Ctrl+P → "PDF olarak kaydet"', 'success');
+        }
+        
+        // Modal Functions
+            try {
+                console.log('� Dosya oluşturuluyor...');
+                showAlert('⏳ Sözleşme dosyası hazırlanıyor...', 'success');
+                
+                // Create PDF-ready HTML content
+                const htmlContent = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Sözleşmesi</title>
+    <style>
+        @page { 
+            margin: 2cm; 
+            size: A4;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { 
+            text-align: center; 
+            font-size: 18px; 
+            margin-bottom: 10px; 
+            color: #333; 
+        }
+        h2 { 
+            text-align: center; 
+            font-size: 16px; 
+            margin-bottom: 30px; 
+            color: #666; 
+        }
+        h3 { 
+            font-size: 14px; 
+            font-weight: bold; 
+            margin: 20px 0 10px 0; 
+            color: #444; 
+        }
+        p { 
+            text-align: justify; 
+            margin-bottom: 15px; 
+            font-size: 12px;
+        }
+        .signature { 
+            margin-top: 40px; 
+            border-top: 2px solid #ddd; 
+            padding-top: 20px; 
+        }
+        .signature p {
+            margin-bottom: 20px;
+        }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU</h1>
+    <h2>KAPSAMINDA AYDINLATMA METNİ</h2>
+    
+    <h3>1. Veri Sorumlusu</h3>
+    <p>6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca www.hayırlıolsun.com veri sorumlusu olarak hareket etmektedir.</p>
+    
+    <h3>2. Verilerin İşlenmesi</h3>
+    <p>www.hayırlıolsun.com olarak düzenlediğiniz bu form uyarınca kişisel verileriniz; işbu etkinlik ve diğer etkinliklerin planlanması, duyurulması, üçüncü kişilerin bilgilendirilmesi ve oluşumumuzun tanıtılması amacıyla işlenmektedir.</p>
+    
+    <h3>3. Kişisel Verilerinizin Aktarılması</h3>
+    <p>Site yönetimimiz, yasal olarak aktarılması gereken idari ve resmi makamlara, faaliyetlerimizi yürütmek üzere dışarıdan hizmet alınan üçüncü kişilere aktarabilecektir.</p>
+    
+    <h3>4. Veri Sahibinin Hakları</h3>
+    <p>6698 sayılı Kanunun 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, düzeltilmesini isteme, silinmesini isteme haklarınız bulunmaktadır.</p>
+    
+    <h3>5. Açık Rıza Metni</h3>
+    <p>Kişisel verilerimin aydınlatma metninde belirtilen amaçlarla işlenmesine ve üçüncü kişi veya kurumlara aktarılmasına açık rızam vardır.</p>
+    
+    <div class="signature">
+        <h3>İMZA</h3>
+        <p>İsim-Soyisim: _____________________________________</p>
+        <p>Tarih: ${new Date().toLocaleDateString('tr-TR')}</p>
+        <p>İmza: _____________________________________</p>
+    </div>
+    
+    <div class="no-print" style="margin-top: 30px; padding: 15px; background: #f0f8ff; border-left: 4px solid #0066cc;">
+        <h4 style="margin: 0 0 10px 0; color: #0066cc;">📄 PDF Olarak Kaydetme Talimatları:</h4>
+        <ol style="margin: 0; padding-left: 20px;">
+            <li><strong>Ctrl+P</strong> tuşlarına basın (veya Dosya → Yazdır)</li>
+            <li>Hedef olarak <strong>"PDF olarak kaydet"</strong> seçin</li>
+            <li><strong>"Kaydet"</strong> butonuna tıklayın</li>
+        </ol>
+    </div>
+</body>
+</html>`;
+
+                // Create and download HTML file
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'kullanici-sozlesmesi.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Show success message with instructions
+                showAlert('✅ Sözleşme dosyası indirildi!', 'success');
+                
+                setTimeout(() => {
+                    showAlert('📄 PDF yapmak için: İndirilen dosyayı açın → Ctrl+P → "PDF olarak kaydet" seçin', 'success');
+                }, 2000);
+                
+                console.log('✅ HTML dosyası başarıyla oluşturuldu');
+                
+            } catch (error) {
+                console.error('❌ Dosya oluşturma hatası:', error);
+                showAlert('❌ Dosya oluşturma hatası: ' + error.message, 'error');
+            }
+        }
+                
+                // Create a hidden div with the content to convert to PDF
+                const contentDiv = document.createElement('div');
+                contentDiv.style.cssText = `
+                    position: absolute;
+                    top: -9999px;
+                    left: -9999px;
+                    width: 794px;
+                    background: white;
+                    padding: 40px;
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                `;
+                
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="font-size: 18px; margin-bottom: 10px; color: #333;">
+                            6698 SAYILI KISISEL VERILERIN KORUNMASI KANUNU
+                        </h1>
+                        <h2 style="font-size: 16px; margin-bottom: 20px; color: #666;">
+                            KAPSAMINDA AYDINLATMA METNI
+                        </h2>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #444;">
+                            1. Veri Sorumlusu
+                        </h3>
+                        <p style="margin-bottom: 15px; text-align: justify;">
+                            6698 sayili Kisisel Verilerin Korunmasi Kanunu uyarinca www.hayirliolsun.com 
+                            veri sorumlusu olarak hareket etmektedir.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #444;">
+                            2. Verilerin Islenmesi
+                        </h3>
+                        <p style="margin-bottom: 15px; text-align: justify;">
+                            www.hayirliolsun.com olarak duzenlediginiz bu form uyarinca kisisel verileriniz; 
+                            isbu etkinlik ve diger etkinliklerin planlanmasi, duyurulmasi, ucuncu kisilerin 
+                            bilgilendirilmesi ve olusumumuzun tanitilmasi amaciyla islenmektedir.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #444;">
+                            3. Kisisel Verilerinizin Aktarilmasi
+                        </h3>
+                        <p style="margin-bottom: 15px; text-align: justify;">
+                            Site yonetimimiz, yasal olarak aktarilmasi gereken idari ve resmi makamlara, 
+                            faaliyetlerimizi yurutmek uzere disaridan hizmet alinan ucuncu kisilere 
+                            aktarabilecektir.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #444;">
+                            4. Veri Sahibinin Haklari
+                        </h3>
+                        <p style="margin-bottom: 15px; text-align: justify;">
+                            6698 sayili Kanunun 11. maddesi uyarinca kisisel verilerinizin islenip 
+                            islenmedigini ogrenme, duzeltilmesini isteme, silinmesini isteme haklariniz 
+                            bulunmaktadir.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #444;">
+                            5. Acik Riza Metni
+                        </h3>
+                        <p style="margin-bottom: 15px; text-align: justify;">
+                            Kisisel verilerimin aydinlatma metninde belirtilen amaclarla islenmesine ve 
+                            ucuncu kisi veya kurumlara aktarilmasina acik rizam vardir.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
+                        <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #444;">
+                            IMZA
+                        </h3>
+                        <p style="margin-bottom: 20px;">Isim-Soyisim: _________________________</p>
+                        <p style="margin-bottom: 20px;">Tarih: ${new Date().toLocaleDateString('tr-TR')}</p>
+                        <p>Imza: _________________________</p>
+                    </div>
+                `;
+                
+                document.body.appendChild(contentDiv);
+                
+                // Check if required libraries are loaded
+                if (typeof html2canvas === 'undefined' || typeof window.jsPDF === 'undefined') {
+                    throw new Error('Gerekli kütüphaneler yüklenemedi');
+                }
+                
+                // Convert HTML to canvas, then to PDF
+                html2canvas(contentDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                }).then(canvas => {
+                    try {
+                        const { jsPDF } = window.jsPDF;
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+                        
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgWidth = 210; // A4 width in mm
+                        const pageHeight = 295; // A4 height in mm
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                        
+                        let heightLeft = imgHeight;
+                        let position = 0;
+                        
+                        // Add first page
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                        
+                        // Add additional pages if needed
+                        while (heightLeft >= 0) {
+                            position = heightLeft - imgHeight;
+                            pdf.addPage();
+                            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                            heightLeft -= pageHeight;
+                        }
+                        
+                        // Clean up
+                        document.body.removeChild(contentDiv);
+                        
+                        // Save PDF
+                        pdf.save('kullanici-sozlesmesi.pdf');
+                        
+                        console.log('✅ PDF başarıyla oluşturuldu');
+                        showAlert('📄 Kullanıcı Sözleşmesi PDF olarak başarıyla indirildi!', 'success');
+                        
+                    } catch (pdfError) {
+                        console.error('❌ PDF oluşturma hatası:', pdfError);
+                        document.body.removeChild(contentDiv);
+                        throw pdfError;
+                    }
+                }).catch(error => {
+                    console.error('❌ Canvas oluşturma hatası:', error);
+                    if (contentDiv.parentNode) {
+                        document.body.removeChild(contentDiv);
+                    }
+                    throw error;
+                });
+                
+            } catch (error) {
+                console.error('❌ PDF generation error:', error);
+                
+                // Fallback to simple text download
+                showAlert('⚠️ PDF oluşturulamadı. Alternatif dosya indiriliyor...', 'error');
+                
+                setTimeout(() => {
+                    try {
+                        const content = `6698 SAYILI KISISEL VERILERIN KORUNMASI KANUNU KAPSAMINDA AYDINLATMA METNI
+
+1. Veri Sorumlusu
+6698 sayili Kisisel Verilerin Korunmasi Kanunu uyarinca www.hayirliolsun.com veri sorumlusu olarak hareket etmektedir.
+
+2. Verilerin Islenmesi
+www.hayirliolsun.com olarak duzenlediginiz bu form uyarinca kisisel verileriniz; isbu etkinlik ve diger etkinliklerin planlanmasi, duyurulmasi, ucuncu kisilerin bilgilendirilmesi ve olusumumuzun tanitilmasi amaciyla islenmektedir.
+
+3. Kisisel Verilerinizin Aktarilmasi
+Site yonetimimiz, yasal olarak aktarilmasi gereken idari ve resmi makamlara, faaliyetlerimizi yurutmek uzere disaridan hizmet alinan ucuncu kisilere aktarabilecektir.
+
+4. Veri Sahibinin Haklari
+6698 sayili Kanunun 11. maddesi uyarinca kisisel verilerinizin islenip islenmedigini ogrenme, duzeltilmesini isteme, silinmesini isteme haklariniz bulunmaktadir.
+
+5. Acik Riza Metni
+Kisisel verilerimin aydinlatma metninde belirtilen amaclarla islenmesine ve ucuncu kisi veya kurumlara aktarilmasina acik rizam vardir.
+
+IMZA
+Isim-Soyisim: _________________________
+Tarih: ${new Date().toLocaleDateString('tr-TR')}
+Imza: _________________________
+`;
+                        
+                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'kullanici-sozlesmesi.tx';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        showAlert('📝 Alternatif olarak metin dosyası indirildi.', 'success');
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback error:', fallbackError);
+                        showAlert('❌ Dosya indirme işlemi başarısız oldu.', 'error');
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Modal Functions
+        function openUserAgreementModal(event) {
+            try {
+                console.log('📄 Kullanıcı sözleşmesi modal açılıyor...');
+                event.preventDefault();
+                
+                const modal = document.getElementById('userAgreementModal');
+                if (!modal) {
+                    console.error('❌ Modal element bulunamadı!');
+                    alert('Modal bulunamadı. Sayfayı yenileyin.');
+                    return;
+                }
+                
+                console.log('✅ Modal element bulundu:', modal);
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal açıldı');
+                
+            } catch (error) {
+                console.error('❌ Modal açma hatası:', error);
+                alert('Modal açma hatası: ' + error.message);
+            }
+        }
+        
+        function closeUserAgreementModal() {
+            try {
+                const modal = document.getElementById('userAgreementModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    console.log('✅ Modal kapatıldı');
+                }
+            } catch (error) {
+                console.error('❌ Modal kapatma hatası:', error);
+            }
+        }
+        
+        function acceptAndCloseModal() {
+            // Check the terms checkbox
+            const termsCheckbox = document.getElementById('terms_accepted');
+            termsCheckbox.checked = true;
+            
+            // Close modal
+            closeUserAgreementModal();
+            
+            // Show confirmation message
+            showAlert('✅ Kullanıcı Sözleşmesi kabul edildi!', 'success');
+        }
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('userAgreementModal');
+            if (event.target === modal) {
+                closeUserAgreementModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('userAgreementModal');
+                if (modal.style.display === 'block') {
+                    closeUserAgreementModal();
+                }
+            }
+        });
+        
+        // Simple PDF download function
+        function downloadSimpleContract(event) {
+            event.preventDefault();
+            
+            const htmlContent = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcı Sözleşmesi</title>
+    <style>
+        @page { margin: 2cm; size: A4; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        h1 { text-align: center; font-size: 18px; margin-bottom: 10px; }
+        h2 { text-align: center; font-size: 16px; margin-bottom: 30px; color: #666; }
+        h3 { font-size: 14px; font-weight: bold; margin: 20px 0 10px 0; }
+        p { text-align: justify; margin-bottom: 15px; font-size: 12px; }
+        .signature { margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; }
+        .help { margin-top: 30px; padding: 15px; background: #f0f8ff; border-left: 4px solid #0066cc; }
+        @media print { .help { display: none; } }
+    </style>
+</head>
+<body>
+    <h1>6698 SAYILI KİŞİSEL VERİLERİN KORUNMASI KANUNU</h1>
+    <h2>KAPSAMINDA AYDINLATMA METNİ</h2>
+    
+    <h3>1. Veri Sorumlusu</h3>
+    <p>6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca www.hayırlıolsun.com veri sorumlusu olarak hareket etmektedir.</p>
+    
+    <h3>2. Verilerin İşlenmesi</h3>
+    <p>www.hayırlıolsun.com olarak düzenlediğiniz bu form uyarınca kişisel verileriniz; işbu etkinlik ve diğer etkinliklerin planlanması, duyurulması, üçüncü kişilerin bilgilendirilmesi ve oluşumumuzun tanıtılması amacıyla işlenmektedir.</p>
+    
+    <h3>3. Kişisel Verilerinizin Aktarılması</h3>
+    <p>Site yönetimimiz, yasal olarak aktarılması gereken idari ve resmi makamlara, faaliyetlerimizi yürütmek üzere dışarıdan hizmet alınan üçüncü kişilere aktarabilecektir.</p>
+    
+    <h3>4. Veri Sahibinin Hakları</h3>
+    <p>6698 sayılı Kanunun 11. maddesi uyarınca kişisel verilerinizin işlenip işlenmediğini öğrenme, düzeltilmesini isteme, silinmesini isteme haklarınız bulunmaktadır.</p>
+    
+    <h3>5. Açık Rıza Metni</h3>
+    <p>Kişisel verilerimin aydınlatma metninde belirtilen amaçlarla işlenmesine ve üçüncü kişi veya kurumlara aktarılmasına açık rızam vardır.</p>
+    
+    <div class="signature">
+        <h3>İMZA</h3>
+        <p>İsim-Soyisim: _____________________________________</p>
+        <p>Tarih: ${new Date().toLocaleDateString('tr-TR')}</p>
+        <p>İmza: _____________________________________</p>
+    </div>
+    
+    <div class="help">
+        <h4>📄 PDF Olarak Kaydetme:</h4>
+        <p><strong>Ctrl+P</strong> → <strong>"PDF olarak kaydet"</strong> → <strong>Kaydet</strong></p>
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'kullanici-sozlesmesi.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('✅ Dosya indirildi! Açın → Ctrl+P → "PDF olarak kaydet"', 'success');
+        }
+        
+        // Simple modal functions
+        function showUserAgreement() {
+            console.log('📄 Modal açılıyor...');
+            const modal = document.getElementById('userAgreementModal');
+            if (modal) {
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal açıldı');
+            } else {
+                console.error('❌ Modal bulunamadı');
+                alert('Modal bulunamadı. Sayfayı yenileyin.');
+            }
+        }
+        
+        function closeUserAgreementModal() {
+            const modal = document.getElementById('userAgreementModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                console.log('✅ Modal kapandı');
+            }
+        }
+        
+        function acceptAndCloseModal() {
+            const termsCheckbox = document.getElementById('terms_accepted');
+            if (termsCheckbox) {
+                termsCheckbox.checked = true;
+            }
+            closeUserAgreementModal();
+            showAlert('✅ Kullanıcı Sözleşmesi kabul edildi!', 'success');
+        }
+        
+        // Click outside to close
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('userAgreementModal');
+            if (event.target === modal) {
+                closeUserAgreementModal();
+            }
+        });
+        
+        // Escape key to close
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('userAgreementModal');
+                if (modal && modal.style.display === 'block') {
+                    closeUserAgreementModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

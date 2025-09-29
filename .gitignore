@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Environment variables (GİZLİ BİLGİLER!)
+.env
+.env.local
+.env.production
+config.js
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build outputs
+dist/
+build/
+
+# Supabase local files
+.supabase/
+
+# Personal notes
+*.txt
+notes/
+
+# Backup files
+*_backup.*
+*_old.*
+
+# Test files
+test-*.html
+debug-*.html

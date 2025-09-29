@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Test - User Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>🧪 Supabase Bağlantı Testi</h1>
+                <p>Veritabanı bağlantısını test et ve durumu kontrol et</p>
+            </div>
+
+            <div id="statusContainer">
+                <div class="status info">
+                    <strong>⏳ Bekleniyor...</strong><br>
+                    Supabase bağlantısı test ediliyor...
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-success" onclick="testConnection()">🔍 Bağlantı Test Et</button>
+                <button class="btn" onclick="loadUsers()">👥 Kullanıcıları Listele</button>
+                <button class="btn" onclick="createTestUser()">➕ Test Kullanıcı Oluştur</button>
+                <button class="btn" onclick="forceCreateMockData()">📦 Mock Data Oluştur</button>
+                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Logları Temizle</button>
+            </div>
+
+            <div id="resultContainer"></div>
+            <div id="logContainer">
+                <strong>📋 Test Logları:</strong>
+                <div class="log" id="logArea"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🔧 Supabase Konfigürasyon</h3>
+            <p><strong>URL:</strong> <code>https://xgdxqnpsmkbnamtsjhmo.supabase.co</code></p>
+            <p><strong>Anon Key:</strong> <code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></p>
+            <p><strong>Proje Durumu:</strong> <span id="projectStatus">Kontrol ediliyor...</span></p>
+            
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="window.location.href='simple-login.html'">🔐 Login Sayfası</button>
+                <button class="btn" onclick="window.location.href='simple-register.html'">📝 Kayıt Sayfası</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Database Service -->
+    <script src="assets/js/database-fixed.js"></script>
+
+    <script>
+        let testLogs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testLogs.push(logMessage);
+            
+            const logArea = document.getElementById('logArea');
+            logArea.textContent = testLogs.join('\n');
+            logArea.scrollTop = logArea.scrollHeight;
+            
+            console.log(logMessage);
+        }
+
+        function updateStatus(message, type, details = null) {
+            const statusContainer = document.getElementById('statusContainer');
+            const statusClass = type || 'info';
+            
+            statusContainer.innerHTML = `
+                <div class="status ${statusClass}">
+                    <strong>${message}</strong>
+                    ${details ? `<br><small>${details}</small>` : ''}
+                </div>
+            `;
+        }
+
+        function showResult(title, data) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.innerHTML = `
+                <div class="result">
+                    <h4>${title}</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function testConnection() {
+            addLog('🔍 Supabase bağlantı testi başlatılıyor...');
+            updateStatus('⏳ Test ediliyor...', 'info');
+            
+            try {
+                // Check if Supabase library is loaded
+                if (typeof window.supabase === 'undefined') {
+                    addLog('❌ Supabase library yüklenmemiş');
+                    updateStatus('❌ Supabase Library Yok', 'error', 'CDN\'den yüklenemiyor olabilir');
+                    return;
+                }
+                
+                addLog('✅ Supabase library yüklendi');
+                
+                // Wait for database service
+                let attempts = 0;
+                while (!window.db && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.db) {
+                    addLog('❌ Database service yüklenemedi');
+                    updateStatus('❌ Database Service Yok', 'error', 'Database service initialize edilemiyor');
+                    return;
+                }
+                
+                addLog('✅ Database service yüklendi');
+                
+                // Get status
+                const status = window.db.getStatusMessage();
+                addLog(`📊 Database Status: ${status.title} - ${status.message}`);
+                
+                updateStatus(
+                    `${status.icon} ${status.title}`, 
+                    status.type, 
+                    status.message + (status.action ? ' ' + status.action : '')
+                );
+                
+                document.getElementById('projectStatus').textContent = status.title;
+                
+                // Test Supabase connection details
+                if (window.db.supabase) {
+                    addLog('🔗 Supabase client mevcut');
+                    addLog(`🌐 URL: ${window.db.supabaseUrl}`);
+                    addLog(`🔑 Key: ${window.db.supabaseKey.substring(0, 20)}...`);
+                    
+                    // Test auth
+                    try {
+                        const { data: authData, error: authError } = await window.db.supabase.auth.getSession();
+                        if (authError) {
+                            addLog(`⚠️ Auth session warning: ${authError.message}`);
+                        } else {
+                            addLog('🔐 Auth session kontrol edildi');
+                        }
+                    } catch (authException) {
+                        addLog(`❌ Auth session exception: ${authException.message}`);
+                    }
+                    
+                    // Test database query
+                    try {
+                        addLog('🧪 Database query test ediliyor...');
+                        const { data, error } = await window.db.supabase
+                            .from('users')
+                            .select('id, username, first_name')
+                            .limit(3);
+                        
+                        if (error) {
+                            addLog(`❌ Database query hatası: ${error.message} (Code: ${error.code})`);
+                            if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+                                addLog('💡 Çözüm: Supabase Dashboard > SQL Editor\'da supabase-setup.sql dosyasını çalıştırın');
+                            } else if (error.code === 'PGRST301') {
+                                addLog('🔒 RLS (Row Level Security) sorunu olabilir');
+                            } else if (error.message.includes('JWT')) {
+                                addLog('🔑 API Key sorunu olabilir');
+                            }
+                        } else {
+                            addLog(`✅ Database query başarılı: ${data?.length || 0} kayıt bulundu`);
+                            if (data && data.length > 0) {
+                                showResult('Supabase Query Result', data);
+                            }
+                        }
+                    } catch (queryError) {
+                        addLog(`❌ Query exception: ${queryError.message}`);
+                    }
+                } else {
+                    addLog('❌ Supabase client bulunamadı');
+                }
+                
+                // Test localStorage
+                addLog('📦 LocalStorage testi yapılıyor...');
+                const localUsers = localStorage.getItem('mockUsers');
+                if (localUsers) {
+                    try {
+                        const parsed = JSON.parse(localUsers);
+                        addLog(`✅ LocalStorage: ${parsed.length} kullanıcı mevcut`);
+                    } catch (parseError) {
+                        addLog(`❌ LocalStorage parse hatası: ${parseError.message}`);
+                    }
+                } else {
+                    addLog('⚠️ LocalStorage boş, mock data oluşturuluyor...');
+                    if (window.db && window.db.initializeMockData) {
+                        window.db.initializeMockData();
+                        addLog('✅ Mock data oluşturuldu');
+                    }
+                }
+                
+            } catch (error) {
+                addLog(`❌ Test genel hatası: ${error.message}`);
+                addLog(`🔍 Error stack: ${error.stack}`);
+                updateStatus('❌ Test Başarısız', 'error', error.message);
+            }
+        }
+
+        async function loadUsers() {
+            addLog('👥 Kullanıcılar yükleniyor...');
+            
+            try {
+                if (!window.db) {
+                    addLog('❌ Database service hazır değil, bekleniyor...');
+                    
+                    // Wait for database service
+                    let attempts = 0;
+                    while (!window.db && attempts < 30) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        attempts++;
+                    }
+                    
+                    if (!window.db) {
+                        throw new Error('Database service yüklenemedi');
+                    }
+                }
+                
+                addLog('✅ Database service hazır');
+                
+                // Initialize mock data if not present
+                if (!localStorage.getItem('mockUsers')) {
+                    addLog('📦 Mock data bulunamadı, oluşturuluyor...');
+                    window.db.initializeMockData();
+                }
+                
+                const users = await window.db.getAllUsers();
+                addLog(`✅ ${users.length} kullanıcı yüklendi`);
+                
+                if (users.length === 0) {
+                    addLog('⚠️ Hiç kullanıcı bulunamadı, mock data oluşturuluyor...');
+                    
+                    // Force create mock data
+                    const mockUsers = [
+                        {
+                            id: 1,
+                            username: 'admin',
+                            email: 'admin@example.com',
+                            password: 'admin123',
+                            first_name: 'Admin',
+                            last_name: 'User',
+                            role: 'admin',
+                            gender: 'male',
+                            created_at: new Date().toISOString()
+                        },
+                        {
+                            id: 2,
+                            username: 'john_doe',
+                            email: 'john@example.com',
+                            password: 'user123',
+                            first_name: 'John',
+                            last_name: 'Doe',
+                            role: 'user',
+                            gender: 'male',
+                            created_at: new Date().toISOString()
+                        },
+                        {
+                            id: 3,
+                            username: 'jane_smith',
+                            email: 'jane@example.com',
+                            password: 'user123',
+                            first_name: 'Jane',
+                            last_name: 'Smith',
+                            role: 'user',
+                            gender: 'female',
+                            created_at: new Date().toISOString()
+                        }
+                    ];
+                    
+                    localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+                    addLog(`✅ ${mockUsers.length} mock kullanıcı oluşturuldu`);
+                    
+                    // Reload users
+                    const newUsers = await window.db.getAllUsers();
+                    addLog(`🔄 Yeniden yüklendi: ${newUsers.length} kullanıcı`);
+                    
+                    const userSummary = newUsers.map(u => ({
+                        id: u.id,
+                        username: u.username,
+                        first_name: u.first_name,
+                        last_name: u.last_name,
+                        role: u.role,
+                        gender: u.gender,
+                        email: u.email
+                    }));
+                    
+                    showResult('Kullanıcı Listesi (Mock Data)', userSummary);
+                } else {
+                    const userSummary = users.map(u => ({
+                        id: u.id,
+                        username: u.username,
+                        first_name: u.first_name,
+                        last_name: u.last_name,
+                        role: u.role,
+                        gender: u.gender,
+                        email: u.email,
+                        source: window.db.isDemoMode ? 'localStorage' : 'Supabase'
+                    }));
+                    
+                    showResult('Kullanıcı Listesi', userSummary);
+                }
+                
+            } catch (error) {
+                addLog(`❌ Kullanıcı yükleme hatası: ${error.message}`);
+                
+                // Fallback to direct localStorage check
+                addLog('🔄 Direct localStorage kontrolü yapılıyor...');
+                const directUsers = localStorage.getItem('mockUsers');
+                if (directUsers) {
+                    try {
+                        const parsed = JSON.parse(directUsers);
+                        addLog(`📦 Direct localStorage: ${parsed.length} kullanıcı bulundu`);
+                        showResult('Direct localStorage Users', parsed);
+                    } catch (parseError) {
+                        addLog(`❌ JSON parse hatası: ${parseError.message}`);
+                    }
+                } else {
+                    addLog('❌ LocalStorage\'da hiç veri yok');
+                    
+                    // Create minimal test data
+                    const minimalUsers = [
+                        { id: 1, username: 'admin', first_name: 'Admin', role: 'admin' },
+                        { id: 2, username: 'test', first_name: 'Test User', role: 'user' }
+                    ];
+                    localStorage.setItem('mockUsers', JSON.stringify(minimalUsers));
+                    addLog('✅ Minimal test data oluşturuldu');
+                    showResult('Test Data', minimalUsers);
+                }
+            }
+        }
+
+        async function createTestUser() {
+            addLog('➕ Test kullanıcısı oluşturuluyor...');
+            
+            try {
+                if (!window.db) {
+                    throw new Error('Database service hazır değil');
+                }
+                
+                const testUser = {
+                    username: 'test_' + Date.now(),
+                    email: `test_${Date.now()}@example.com`,
+                    password: 'test123',
+                    first_name: 'Test',
+                    last_name: 'User',
+                    role: 'user',
+                    gender: 'male',
+                    terms_accepted: true,
+                    terms_accepted_at: new Date().toISOString()
+                };
+                
+                const result = await window.db.createUser(testUser);
+                
+                if (result.success) {
+                    addLog(`✅ Test kullanıcısı oluşturuldu: ${testUser.username}`);
+                    showResult('Oluşturulan Kullanıcı', result.user);
+                } else {
+                    addLog(`❌ Kullanıcı oluşturulamadı: ${result.message}`);
+                }
+                
+            } catch (error) {
+                addLog(`❌ Kullanıcı oluşturma hatası: ${error.message}`);
+            }
+        }
+
+        function forceCreateMockData() {
+            addLog('📦 Mock data zorla oluşturuluyor...');
+            
+            try {
+                const mockUsers = [
+                    {
+                        id: 1,
+                        username: 'admin',
+                        email: 'admin@example.com',
+                        password: 'admin123',
+                        first_name: 'Admin',
+                        last_name: 'User',
+                        role: 'admin',
+                        status: 'active',
+                        gender: 'male',
+                        bio: 'Sistem yöneticisi',
+                        phone: '+90 555 000 0001',
+                        terms_accepted: true,
+                        terms_accepted_at: new Date().toISOString(),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        username: 'john_doe',
+                        email: 'john@example.com',
+                        password: 'user123',
+                        first_name: 'John',
+                        last_name: 'Doe',
+                        role: 'user',
+                        status: 'active',
+                        gender: 'male',
+                        bio: 'Demo kullanıcısı',
+                        phone: '+90 555 123 4567',
+                        terms_accepted: true,
+                        terms_accepted_at: new Date().toISOString(),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    },
+                    {
+                        id: 3,
+                        username: 'jane_smith',
+                        email: 'jane@example.com',
+                        password: 'user123',
+                        first_name: 'Jane',
+                        last_name: 'Smith',
+                        role: 'user',
+                        status: 'active',
+                        gender: 'female',
+                        bio: 'Demo kullanıcısı',
+                        phone: '+90 555 987 6543',
+                        terms_accepted: true,
+                        terms_accepted_at: new Date().toISOString(),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+                addLog(`✅ ${mockUsers.length} mock kullanıcı localStorage'a kaydedildi`);
+                
+                // Also create activities
+                const mockActivities = [
+                    {
+                        id: 1,
+                        user_id: 2,
+                        action: 'login',
+                        description: 'Sisteme giriş yapıldı',
+                        ip_address: '192.168.1.100',
+                        created_at: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('mockActivities', JSON.stringify(mockActivities));
+                addLog(`✅ ${mockActivities.length} aktivite kaydı oluşturuldu`);
+                
+                showResult('Oluşturulan Mock Data', { users: mockUsers, activities: mockActivities });
+                
+            } catch (error) {
+                addLog(`❌ Mock data oluşturma hatası: ${error.message}`);
+            }
+        }
+
+        function clearLogs() {
+            testLogs = [];
+            document.getElementById('logArea').textContent = '';
+            document.getElementById('resultContainer').innerHTML = '';
+            addLog('🗑️ Loglar temizlendi');
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', async function() {
+            addLog('🚀 Supabase test sayfası başlatılıyor...');
+            
+            // Auto test after load
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero { text-align: center; padding: 100px 20px; }
+        .hero h1 { font-size: 4rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); font-family: 'Brush Script MT', cursive, 'Comic Sans MS', sans-serif; font-style: italic; }
+        .hero p { font-size: 1.5rem; margin-bottom: 2rem; opacity: 0.9; }
+        .buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn { display: inline-block; padding: 15px 30px; background: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; cursor: pointer; border: none; font-size: 16px; }
+        .btn:hover { background: #0056b3; transform: translateY(-2px); }
+        .btn-secondary { background: transparent; border: 2px solid white; }
+        .btn-secondary:hover { background: white; color: #007bff; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 5rem; }
+        .feature { background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px; text-align: center; }
+        .feature-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .demo-accounts { background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px; margin-top: 3rem; }
+        .demo-accounts h3 { margin-bottom: 1rem; }
+        .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .demo-item { background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 8px; font-family: monospace; }
+        @media (max-width: 768px) { .hero h1 { font-size: 2.5rem; } .buttons { flex-direction: column; align-items: center; } }
+        
+        /* Alert Styles */
+        .alert { padding: 15px; margin: 20px auto; border-radius: 8px; max-width: 400px; text-align: center; display: none; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="alertContainer"></div>
+        
+        <div class="hero">
+            <h1>hayırlı olsun (v18)</h1>
+          <!-- -<p>Buraya birşey yazılacak.</p>  -->
+            <div class="buttons">
+                <button onclick="goToLogin()" class="btn">Giriş Yap</button>
+                <button onclick="goToRegister()" class="btn btn-secondary">Kayıt Ol</button>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🧔</div>
+             <!--    <h3>Profil Yönetimi</h3> -->
+             <!--    <p>Kullanıcılar profillerini düzenleyebilir, resim yükleyebilir</p >-->
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💍</div>
+            <!--    <h3>Güvenlik</h3>
+                <p>Modern şifreleme ve güvenli oturum yönetimi</p> >-->
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🧕</div> 
+             <!--   <h3>Admin Panel</h3>
+                <p>Kapsamlı kullanıcı yönetimi ve raporlama</p> >-->
+            </div>
+        </div>
+        
+       <!--   <div class="demo-accounts">
+            <h3>🎯 Demo Hesapları</h3>
+            <div class="demo-grid">
+                <div class="demo-item">
+                  <h4>👑 Admin</h4>
+                    <p>Kullanıcı: <strong>admin</strong></p>
+                    <p>Şifre: <strong>admin123</strong></p>
+                    <button onclick="loginAsAdmin()" class="btn" style="margin-top: 10px; font-size: 14px; padding: 8px 16px;">Admin Olarak Giriş</button> >-->
+              <!--   </div>
+                <div class="demo-item">
+                    <h4>👤 Kullanıcı</h4>
+                    <p>Kullanıcı: <strong>john_doe</strong></p>
+                    <p>Şifre: <strong>user123</strong></p>
+                    <button onclick="loginAsUser()" class="btn" style="margin-top: 10px; font-size: 14px; padding: 8px 16px;">Kullanıcı Olarak Giriş</button> >-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/database-fixed.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                if (currentUser.role === 'admin') {
+                    window.location.href = 'admin/dashboard.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+
+        function goToLogin() {
+            window.location.href = 'login.html';
+        }
+
+        function goToRegister() {
+            window.location.href = 'register.html';
+        }
+
+        function loginAsAdmin() {
+            // Mock admin login
+            const adminUser = {
+                id: 1,
+                username: 'admin',
+                email: 'admin@example.com',
+                first_name: 'Admin',
+                last_name: 'User',
+                role: 'admin',
+                status: 'active',
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(adminUser));
+            showAlert('Admin olarak giriş yapıldı!', 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'admin/dashboard.html';
+            }, 1000);
+        }
+
+        function loginAsUser() {
+            // Mock user login
+            const normalUser = {
+                id: 2,
+                username: 'john_doe',
+                email: 'john@example.com',
+                first_name: 'John',
+                last_name: 'Doe',
+                role: 'user',
+                status: 'active',
+                gender: 'male',
+                bio: 'Demo kullanıcısı',
+                phone: '+90 555 123 4567',
+                profile_image: 'uploads/demo-male.jpg',
+                created_at: new Date().toISOString(),
+                last_login: new Date().toISOString(),
+                terms_accepted: true,
+                terms_accepted_at: new Date().toISOString()
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(normalUser));
+            showAlert('Kullanıcı olarak giriş yapıldı!', 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
