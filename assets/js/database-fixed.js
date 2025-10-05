@@ -224,7 +224,7 @@ class DatabaseService {
                     first_name VARCHAR(50),
                     last_name VARCHAR(50),
                     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user')),
-                    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
+                    status VARCHAR(20) DEFAULT 'suspended' CHECK (status IN ('active', 'inactive', 'suspended')),
                     gender VARCHAR(10) CHECK (gender IN ('male', 'female')),
                     phone VARCHAR(20),
                     bio TEXT,
@@ -334,8 +334,14 @@ class DatabaseService {
     }
     
     // Visible users - admin görebilir hepsini, diğerleri sadece aktif ve pasif olanları
-    async getVisibleUsers(currentUserRole = 'user') {
-        console.log('👁️ Getting visible users for role:', currentUserRole);
+    async getVisibleUsers(currentUserRole = 'user', currentUserStatus = 'active') {
+        console.log('👁️ Getting visible users for role:', currentUserRole, 'status:', currentUserStatus);
+        
+        // SUSPENDED kullanıcılar hiçbir profil göremez
+        if (currentUserStatus === 'suspended') {
+            console.log('🚫 SUSPENDED kullanıcı - hiçbir profil gösterilmiyor');
+            return [];
+        }
         
         try {
             return await this.getAllUsers(true, currentUserRole);
@@ -451,6 +457,11 @@ class DatabaseService {
                 }
                 
                 console.log('✅ User doesn\'t exist, creating in Supabase...');
+                console.log('🔍 userData.status before insert:', userData.status); // DEBUG
+                
+                // FORCE status to be suspended for new users
+                const finalStatus = 'suspended'; // Zorla suspended yap
+                console.log('🔒 Final status set to:', finalStatus); // DEBUG
                 
                 // Create user in Supabase
                 const { data, error } = await this.supabase
@@ -462,7 +473,7 @@ class DatabaseService {
                         first_name: userData.first_name,
                         last_name: userData.last_name,
                         role: userData.role || 'user',
-                        status: userData.status || 'active',
+                        status: finalStatus, // Zorla suspended kullan
                         gender: userData.gender,
                         phone: userData.phone,
                         reference: userData.reference,
@@ -474,6 +485,8 @@ class DatabaseService {
                     }])
                     .select()
                     .single();
+                
+                console.log('🔍 Eklenen kullanıcı data:', data); // DEBUG: Eklenen kullanıcının status'ünü kontrol et
                 
                 if (error) {
                     console.error('❌ Supabase insert error:', error.message, error.code, error.hint);

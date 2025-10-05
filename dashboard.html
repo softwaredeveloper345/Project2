@@ -880,10 +880,10 @@
                 // Get visible users based on current user's role (suspended users hidden from non-admins)
                 let allUsers;
                 if (window.db && window.db.getVisibleUsers) {
-                    allUsers = await window.db.getVisibleUsers(currentUser.role || 'user');
+                    allUsers = await window.db.getVisibleUsers(currentUser.role || 'user', currentUser.status || 'active');
                 } else if (window.DatabaseService) {
                     const dbInstance = new window.DatabaseService();
-                    allUsers = await dbInstance.getVisibleUsers(currentUser.role || 'user');
+                    allUsers = await dbInstance.getVisibleUsers(currentUser.role || 'user', currentUser.status || 'active');
                 } else {
                     throw new Error('Database service not available');
                 }

@@ -155,7 +155,7 @@ async function register(userData) {
             first_name: userData.first_name,
             last_name: userData.last_name,
             role: 'user',
-            status: 'active',
+            status: 'suspended', // Yeni kullanıcılar askıda başlar
             bio: '',
             phone: userData.phone || '',
             reference: userData.reference || '',
@@ -167,6 +167,7 @@ async function register(userData) {
         };
 
         console.log('📝 Database.js ile kullanıcı oluşturuluyor:', newUserData);
+        console.log('🔍 Status kontrol:', newUserData.status); // DEBUG: Status'ü kontrol et
 
         // Use database service to create user
         const result = await db.createUser(newUserData);
