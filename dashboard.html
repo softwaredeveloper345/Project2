@@ -456,13 +456,13 @@
                       
                         <div class="form-group full-width">
                              <label for="bio" style="color: blue;">
-                         Aşağıdaki "Diğer Kullanıcıları gör" butonuna tıkladığınızda diğer kullanıcıları görebileceksiniz.Uygun adaylarla iletişime geçmek için "hayirlisiolsuntr@gmail.com"  admin mailine mail atmanız gerekmektedir. 
+                         Aşağıdaki "Diğer Kullanıcıları gör" butonuna tıkladığınızda diğer kullanıcıları görebileceksiniz. Uygun adaylarla iletişime geçmek için "hayirlisiolsuntr@gmail.com"  admin mailine mail atmanız gerekmektedir. 
                          </label>
                          <label for="bio" style="color: green;">
-                         Lütfen alttaki kutucuğa bilgileri sıralı giriniz: İstenilen bilgi dışında giriş yapılanların profili onaylanmayacaktır
+                         Lütfen alttaki kutucuğa bilgileri sıralı giriniz: İstenilen bilgi dışında giriş yapılanların profili onaylanmayacaktır.
                         </label>
                         <label for="bio" style="color: rgba(220, 53, 69, 0.8);">   
-                         Doğum tarihi, Memleket, Eğitim durumu, İş durumu, Boy, Kilo (Bu bilgileri diğer kullanıcılar görecektir)
+                         Doğum tarihi, Memleket, Eğitim durumu, İş durumu, Boy, Kilo,Hangi şehirde yaşıyor (Bu bilgileri diğer kullanıcılar görecektir)
                         </label>
                         </label><textarea id="bio" name="bio" rows="4" placeholder="Doğum tarihi, Memleket, Eğitim durumu, İş durumu, Boy, Kilo "></textarea>
                         </div>
@@ -576,7 +576,7 @@
                 </div>
                 <div class="profile-modal-info">
                     <h2 id="modalName">User Name</h2>
-                    <div class="email" id="modalEmail">user@example.com</div>
+                    <div class="email" id="modalEmail" style="display: none !important;">user@example.com</div>  
                     <div class="user-card-gender" id="modalGender">👤 Cinsiyet</div>
                 </div>
                 <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
@@ -956,7 +956,7 @@
                         <div class="user-card-name">
                             ${user.username || user.first_name || 'İsimsiz'}
                         </div>
-                        <div class="user-card-email">${user.email}</div>
+                     <!--<div class="user-card-email">${user.email}//kapatıldı// </div>-->   
                         <div class="user-card-gender">
                             ${genderIcon} ${genderText}
                         </div>
